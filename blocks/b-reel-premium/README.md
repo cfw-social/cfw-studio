@@ -135,7 +135,7 @@ No captions: run `check_plan.py --captions off`, skip `build_comp.py` and the re
   no loudness change, and `amix` runs with `normalize=0`, so its level does not move. Effects are delayed to
   their times and mixed under it. Output is H.264 CRF 19, AAC 192k, 48 kHz, stereo.
   **The output is always exactly as long as the reel:** the same number of picture frames at the same frame rate
-  (30 fps when the reel's rate cannot be read). A caption render that is longer or shorter, sound effects or music
+  (a reel whose frame rate cannot be read, is outside 1 to 120 frames a second, or does not fit its own length, or that holds no frames, is refused with exit 1 and nothing is written). A caption render that is longer or shorter, sound effects or music
   that run past the end, and audio a few milliseconds longer or shorter than the picture never lengthen or
   shorten it. The sound is cut or padded with silence to the picture's length.
 - **Check.** `qa.py` confirms the output decodes, has exactly the reel's frame count and frame rate (it compares the same frame number in both files, never the same percentage of two lengths), and has
@@ -224,7 +224,7 @@ A short summary of the limits below. Where this README does not say, it reads "n
 
 | What | Status | Detail |
 |---|---|---|
-| Automated tests | 85 tests, as of 2026-11-22 | `python3 -m unittest discover -s blocks/b-reel-premium/test`, from the repository root. |
+| Automated tests | 87 tests, as of 2026-11-22 | `python3 -m unittest discover -s blocks/b-reel-premium/test`, from the repository root. |
 | Run on which operating systems | macOS (Apple silicon) only; Linux and Windows not run | Python 3.15.2, Node 25.9.0, ffmpeg 8.1 on one Apple-silicon Mac. |
 | Run with a real provider account | no provider | No network, no key. |
 | Used in a real start-to-finish recipe run | yes, in recipe template runs with stand-in media on macOS, 2026-11-22 | Part of the reel recipe template runs. The media was generated, not a real reel. |

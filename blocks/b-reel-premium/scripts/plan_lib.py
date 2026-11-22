@@ -302,32 +302,49 @@ def probe_duration(path):
     return d
 
 
+MIN_FPS, MAX_FPS = 1.0, 120.0
+
+
 def probe_video_timing(path, what="--reel"):
     """The reel's own picture timing: {"fps": "30/1", "frames": int, "seconds": float}.
 
-    The frame count is the number of video packets (one per frame); the rate is the stream's average rate,
-    or 30 when it cannot be read or is outside 1 to 120. The output is made to match these exactly.
+    The frame count is the number of video packets (one per frame); the rate is the stream's average rate
+    (its base rate when the average is not given). The output is made to match these exactly, so anything odd
+    is refused: a rate that cannot be read or is outside 1 to 120 frames a second, no frames, or a frame count
+    that does not fit the picture's own length.
     """
     out = subprocess.run(
         ["ffprobe", "-v", "error", "-protocol_whitelist", "file", "-select_streams", "v:0", "-count_packets", "-show_entries",
-         "stream=avg_frame_rate,r_frame_rate,nb_read_packets", "-of", "json", "-i", path],
+         "stream=avg_frame_rate,r_frame_rate,nb_read_packets,duration", "-of", "json", "-i", path],
         capture_output=True, text=True, check=False,
     )
     try:
         st = (json.loads(out.stdout).get("streams") or [{}])[0]
+    except (ValueError, AttributeError, IndexError):
+        st = {}
+    try:
         frames = int(st.get("nb_read_packets"))
     except (ValueError, TypeError):
         raise PlanError(["%s has no countable video frames" % what])
     if frames < 1:
-        raise PlanError(["%s has no countable video frames" % what])
-    fps = "30/1"
-    for key in ("avg_frame_rate", "r_frame_rate"):
-        m = re.fullmatch(r"(\d{1,6})/(\d{1,6})", str(st.get(key, "")))
-        if m and int(m.group(2)) > 0 and 1 <= int(m.group(1)) / int(m.group(2)) <= 120:
-            fps = "%d/%d" % (int(m.group(1)), int(m.group(2)))
-            break
-    num, den = (int(x) for x in fps.split("/"))
-    return {"fps": fps, "frames": frames, "seconds": frames * den / num}
+        raise PlanError(["%s has no video frames" % what])
+    raw = str(st.get("avg_frame_rate", ""))
+    if raw in ("", "0/0", "N/A"):
+        raw = str(st.get("r_frame_rate", ""))
+    m = re.fullmatch(r"(\d{1,9})/(\d{1,9})", raw)
+    if not m or int(m.group(1)) == 0 or int(m.group(2)) == 0:
+        raise PlanError(["%s has a frame rate that cannot be read (%r)" % (what, raw)])
+    num, den = int(m.group(1)), int(m.group(2))
+    if not MIN_FPS <= num / den <= MAX_FPS:
+        raise PlanError(["%s has a frame rate of %.3g frames a second; only %d to %d are accepted" % (what, num / den, MIN_FPS, MAX_FPS)])
+    seconds = frames * den / num
+    try:
+        length = float(st.get("duration"))
+    except (ValueError, TypeError):
+        length = None
+    if length is not None and (not math.isfinite(length) or abs(length - seconds) > max(0.25, 3.0 * den / num)):
+        raise PlanError(["%s holds %d frames at %d/%d (%.2f s) but its picture is %.2f s long" % (what, frames, num, den, seconds, length)])
+    return {"fps": "%d/%d" % (num, den), "frames": frames, "seconds": seconds}
 
 
 MUSIC_FORMATS = ("wav", "mp3", "aac", "flac", "ogg", "mp4")

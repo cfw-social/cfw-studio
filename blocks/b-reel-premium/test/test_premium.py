@@ -958,6 +958,45 @@ class Mix(WorkDir):
                 q = run("qa.py", ["--reel-in", "reel.mp4", "--reel-out", "out/polished.mp4", "--frames-dir", "out/qa", "--grade", "off", "--captions", "off"], self.work)
                 self.assertEqual(q.returncode, 0, "%s: %s" % (pix, q.stderr))
 
+    def test_an_odd_or_unreadable_frame_rate_is_refused_and_nothing_is_written(self):
+        self.make_moving_reel(name="fast.mp4", fps="240", seconds=1)
+        self.write_plan(good_plan(grade="off", sfx=[]))
+        r = run("mux.py", ["--reel", "fast.mp4", "--no-captions", "--plan", "plan.json", "--out", "out/polished.mp4"], self.work)
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertIn("frame rate", r.stderr)
+        self.assertFalse(os.path.exists(self.path("out", "polished.mp4")))
+        self.assertEqual([n for n in os.listdir(self.path("out"))] if os.path.isdir(self.path("out")) else [], [])
+
+    def test_probe_video_timing_refuses_every_odd_case(self):
+        import unittest.mock as mock
+
+        def fake(avg="30/1", base="30/1", packets="90", duration="3.000000"):
+            st = {"avg_frame_rate": avg, "r_frame_rate": base, "nb_read_packets": packets}
+            if duration is not None:
+                st["duration"] = duration
+            return subprocess.CompletedProcess([], 0, stdout=json.dumps({"streams": [st]}), stderr="")
+
+        def probe(**kw):
+            with mock.patch.object(pl.subprocess, "run", return_value=fake(**kw)):
+                return pl.probe_video_timing("x.mp4")
+
+        self.assertEqual(probe(), {"fps": "30/1", "frames": 90, "seconds": 3.0})
+        self.assertEqual(probe(avg="0/0", base="25/1", packets="75")["fps"], "25/1")     # the base rate when no average is given
+        self.assertEqual(probe(duration=None)["frames"], 90)                              # no length to compare: nothing to disagree
+        for bad, why in ((dict(avg="0/0", base="0/0"), "cannot be read"), (dict(avg="N/A", base="N/A"), "cannot be read"),
+                         (dict(avg="abc", base="abc"), "cannot be read"), (dict(avg="-30/1"), "cannot be read"),
+                         (dict(avg="30/0"), "cannot be read"), (dict(avg="3000/1", packets="3000", duration="1.0"), "only 1 to 120"),
+                         (dict(avg="240/1", packets="240", duration="1.0"), "only 1 to 120"),
+                         (dict(avg="1/2", packets="2", duration="4.0"), "only 1 to 120"),
+                         (dict(packets="0"), "no video frames"), (dict(packets="n/a"), "no countable"),
+                         (dict(packets="3000", duration="3.0"), "its picture is"),
+                         (dict(packets="30", duration="3.0"), "its picture is")):
+            with self.subTest(**bad):
+                with self.assertRaises(pl.PlanError) as ctx:
+                    probe(**bad)
+                self.assertEqual(len(ctx.exception.problems), 1)
+                self.assertIn(why, ctx.exception.problems[0])
+
     def test_qa_colour_check_catches_an_unplanned_grade(self):
         self.make_reel(silent=False)
         self.assertEqual(self.mux(good_plan(grade="warm-amber", sfx=[])).returncode, 0)
