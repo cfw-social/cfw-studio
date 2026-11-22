@@ -23,7 +23,7 @@ Run from the work folder. Each script has one template, found inside this block.
 
 | Entry point | Arguments | Reads | Writes | Exit codes |
 |---|---|---|---|---|
-| `scripts/typing_fill.py` | `--out PAGE` `--duration S` `--text-file TEXT.json` `--accent HEX` `[--bg HEX]` `[--fg HEX]` `[--prompt-size PX]` `[--speed N]` `[--variant full\|pip-safe]` `[--wrap standalone\|template]` `[--slot ID]` | the text file, the block's template | `--out` only | 0 written, 2 bad input or unsafe path, 3 the block's template is missing or changed |
+| `scripts/typing_fill.py` | `--out PAGE` `--duration S` `--text-file TEXT.json` `--accent HEX` `[--bg HEX]` `[--fg HEX]` `[--prompt-size PX]` `[--speed N]` `[--variant full\|pip-safe]` `[--wrap standalone\|template]` `[--slot ID]` | the text file, the block's template | `--out` only | 0 written, 2 bad input, unsafe path, or a prompt that cannot finish typing, 3 the block's template is missing or changed |
 | `scripts/hook_fill.py` | `--out PAGE` `--duration S` `--text-file TEXT.json` `--accent HEX` `[--bg HEX]` `[--fg HEX]` `[--wrap standalone\|template]` `[--slot ID]` | the text file, the block's template | `--out` only | 0 written, 2, 3 as above |
 
 Text files (a JSON object; every value is text; unknown keys are refused):
@@ -46,6 +46,7 @@ Other arguments:
 - Contrast: the WCAG contrast ratio of `--fg` against the background (and, on the typing card, against the card and the prompt box) must be at least 3.0, and on the hook card so must the accent against the background (the big lines are accent-coloured). Below 3.0 is exit 2 with the pair and the ratio. Default pair: 17.4.
 - `--prompt-size PX` (typing only): prompt text size, 24 to 72. The default is **44** for `full` and **38** for `pip-safe`. The prompt wraps inside the card (about 33 characters per line at 44 px). The box holds about 1300 px of text (`full`) or 640 px (`pip-safe`) and cuts anything longer off at its bottom edge; the typing still runs over the whole prompt, so the cut-off end is typed out of sight. The filler prints a note on stderr when its estimate says the prompt will not fit (about 20 lines at 44 px for `full`, about 10 lines at 38 px for `pip-safe`); shorten the prompt or lower `--prompt-size`.
 - `--speed`: typing speed, 0.25 to 4 (default 1.0). Typing starts at 0.5 s and the whole prompt is on screen 0.6 s before the clip ends.
+- **Typing time rule (typing only).** The card does not type at a fixed number of characters a second. It always finishes the whole prompt, so the speed depends on the prompt and the beat. Typing starts at 0.5 s. The typing window is `--duration` x 0.88 / `--speed` seconds long (at least 0.5 s), and it never ends later than 0.6 s before the clip ends: that last 0.6 s is the end pause with the whole prompt on screen. At the default speed of 1.0 a prompt of 100 characters in a 9 s beat is typed in about 7.4 s, about 13 characters a second. A **higher** `--speed` makes the window shorter and the typing faster; a lower one makes it slower. A long prompt in a short beat is therefore typed too fast to read. `typing_fill.py` refuses it with exit 2 and writes nothing when the typing would be faster than **30 characters a second** (this block's own limit, about six words a second). The message gives the minimum `--duration`, and names a lower `--speed` as a fix when that can help. Example: 300 characters need 10 s of typing, so the shortest beat is 12.0 s at speed 1.0. Fix it with a shorter prompt, a longer beat, or a lower `--speed`. Characters are counted as the page counts them, with line breaks included.
 - `--variant pip-safe` (typing only): moves the card up so all content is in the top half of the frame, for recipes that put a speaker video below.
 - `--wrap standalone` (default) writes a complete page. `--wrap template` keeps the `<template>` wrapper so the scene can be used as a sub-composition.
 - `--slot ID` gives the scene its own composition id and prefixes its element ids and classes (`ID-ts-card`), so several scenes can share one page. ID is lower-case letters, digits and hyphens, starting with a letter, 24 characters at most.
@@ -144,7 +145,7 @@ A short summary of the limits below. Where this README does not say, it reads "n
 
 | What | Status | Detail |
 |---|---|---|
-| Automated tests | 54 tests, as of 2026-11-22 | `python3 -m unittest discover -s blocks/b-typing-ui/test`, from the repository root. They do not render the pages. |
+| Automated tests | 58 tests, as of 2026-11-22 | `python3 -m unittest discover -s blocks/b-typing-ui/test`, from the repository root. They do not render the pages. |
 | Run on which operating systems | macOS (Apple silicon) only; Linux and Windows not run | Python 3.15.2, Node 25.9.0, ffmpeg 8.1 on one Apple-silicon Mac. |
 | Run with a real provider account | no provider | No network, no key. |
 | Used in a real start-to-finish recipe run | yes, in recipe template runs with stand-in media on macOS, 2026-11-22 | Part of the reel recipe template runs. The media was generated, not a real reel. |

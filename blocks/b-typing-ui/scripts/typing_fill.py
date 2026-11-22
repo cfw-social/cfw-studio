@@ -39,6 +39,59 @@ def estimate_fit(prompt, size, variant):
     return needed, holds
 
 
+# The template's own timing (templates/typing-scene.html, function typingWindow): typing starts at 0.5 s (earlier in a very
+# short clip), the whole prompt is on screen TYPING_HOLD seconds before the clip ends, and the typed window is
+# duration * 0.88 / speed long, at least 0.5 s, and never later than the hold. The template always finishes the typing
+# inside that window, however many characters there are, so a long prompt in a short beat is typed too fast to read.
+# MAX_CHARS_PER_SECOND is this block's own limit on how fast that may be (about 6 words a second).
+TYPING_START = 0.5
+TYPING_HOLD = 0.6
+MIN_WINDOW = 0.5
+WINDOW_FRACTION = 0.88
+MAX_CHARS_PER_SECOND = 30.0
+
+
+def typing_window(duration, speed):
+    """(start, end) of the typed window in seconds, exactly as the template computes it."""
+    latest = max(0.0, duration - TYPING_HOLD)
+    start = min(TYPING_START, latest / 2)
+    end = max(start + MIN_WINDOW, duration * WINDOW_FRACTION / speed)
+    end = min(end, latest)
+    return start, max(end, start)
+
+
+def typed_length(prompt):
+    """The prompt's length as the page counts it (UTF-16 code units)."""
+    return len(prompt.encode("utf-16-le")) // 2
+
+
+def window_length(duration, speed):
+    start, end = typing_window(duration, speed)
+    return end - start
+
+
+def check_typing_fits(prompt, duration, speed):
+    """Raise FillError when the prompt would be typed faster than MAX_CHARS_PER_SECOND."""
+    n = typed_length(prompt)
+    need = n / MAX_CHARS_PER_SECOND
+    if window_length(duration, speed) + 1e-9 >= need:
+        return
+    # smallest duration, in 0.1 s steps, whose window holds the prompt at this speed
+    d = max(round((need + TYPING_START) * speed / WINDOW_FRACTION, 1), round(need + TYPING_START + TYPING_HOLD, 1))
+    while window_length(d, speed) + 1e-9 < need:
+        d = round(d + 0.1, 1)
+    now = int(round(n / max(window_length(duration, speed), 0.001)))
+    msg = ("the prompt (%d characters) cannot finish typing in %g s at --speed %g: it would be typed at about %d characters a second, "
+           "and this block allows at most %d, with the whole prompt on screen for the last %g s. "
+           "Fix it with a shorter prompt, or a longer beat (the minimum --duration for this prompt at --speed %g is %.1f s)"
+           % (n, duration, speed, now, int(MAX_CHARS_PER_SECOND), TYPING_HOLD, speed, d))
+    if duration - TYPING_HOLD - min(TYPING_START, max(0.0, duration - TYPING_HOLD) / 2) >= need:
+        msg += ", or a lower --speed (this beat needs --speed %.2f or lower; a higher speed types faster)" % (WINDOW_FRACTION * duration / (need + TYPING_START))
+    else:
+        msg += "; no --speed can help at this length"
+    raise fc.FillError(msg)
+
+
 def fill(template, duration, text, accent, bg="0F172A", speed=1.0, variant="full", wrap="standalone", slot=None,
          fg="F8FAFC", prompt_size=None):
     """Return the filled page. `text` is the parsed JSON object."""
@@ -74,6 +127,7 @@ def fill(template, duration, text, accent, bg="0F172A", speed=1.0, variant="full
         "BOTTOM_TAG_DISPLAY": "" if bottom.strip() else "display:none",
         "PROMPT": fc.js_string_body(fc.multi_line(text["prompt"], "prompt", LIMITS["prompt"])),
     }
+    check_typing_fits(text["prompt"], fc.number(duration, "duration", 0.5, 300), fc.number(speed, "speed", 0.25, 4))
     block = fc.cut_template(template, ANCHOR)
     if slot:
         # Rename on the bare template, before any text goes in, so text is never rewritten.

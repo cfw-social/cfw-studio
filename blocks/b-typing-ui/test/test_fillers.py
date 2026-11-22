@@ -644,11 +644,55 @@ class SizeAndColours(unittest.TestCase):
     def test_a_very_long_prompt_is_reported_as_cut_off(self):
         w = Work(self)
         t = w.json("t.json", {"prompt": "word " * 700})
-        r = w.run(TYPING, "--out", "x.html", "--duration", "5", "--text-file", t, "--accent", "F97316")
-        self.assertEqual(r.returncode, 0)
+        r = w.run(TYPING, "--out", "x.html", "--duration", "140", "--text-file", t, "--accent", "F97316")
+        self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn("will be cut off", r.stderr)
         t = w.json("short.json", {"prompt": "short prompt"})
         self.assertNotIn("cut off", w.run(TYPING, "--out", "y.html", "--duration", "5", "--text-file", t, "--accent", "F97316").stderr)
+
+    def test_the_timing_rule_matches_the_templates_own_script(self):
+        text = read(os.path.join(os.path.dirname(SCRIPTS), "templates", "typing-scene.html"))
+        for needle in ("var TYPING_HOLD = 0.6;", "Math.min(0.5, latest / 2)", "duration * 0.88 / speed", "start + 0.5", "Math.min(end, latest)"):
+            self.assertIn(needle, text)
+        self.assertEqual((typing_fill.TYPING_START, typing_fill.TYPING_HOLD, typing_fill.WINDOW_FRACTION, typing_fill.MIN_WINDOW), (0.5, 0.6, 0.88, 0.5))
+        self.assertAlmostEqual(typing_fill.typing_window(9.0, 1.0)[1], 9.0 * 0.88)
+        self.assertEqual(typing_fill.typing_window(5.0, 4.0), (0.5, 1.1))
+
+    def test_a_prompt_that_cannot_finish_typing_is_refused_with_the_fix(self):
+        w = Work(self)
+        t = w.json("t.json", {"prompt": "x" * 300})        # 300 characters need 10 s of typing at 30 a second
+        r = w.run(TYPING, "--out", "x.html", "--duration", "6", "--text-file", t, "--accent", "F97316")
+        self.assertEqual(r.returncode, 2, r.stderr)
+        self.assertIn("cannot finish typing", r.stderr)
+        self.assertIn("shorter prompt", r.stderr)
+        self.assertIn("minimum --duration", r.stderr)
+        self.assertFalse(os.path.exists(w.path("x.html")))
+        m = re.search(r"minimum --duration for this prompt at --speed 1 is ([\d.]+) s", r.stderr)
+        self.assertTrue(m, r.stderr)
+        need = float(m.group(1))
+        self.assertEqual(w.run(TYPING, "--out", "y.html", "--duration", "%.1f" % need, "--text-file", t, "--accent", "F97316").returncode, 0)
+        self.assertEqual(w.run(TYPING, "--out", "z.html", "--duration", "%.1f" % (need - 0.1), "--text-file", t, "--accent", "F97316").returncode, 2)
+
+    def test_a_prompt_that_fits_is_written_and_the_boundary_is_exact(self):
+        w = Work(self)
+        t = w.json("t.json", {"prompt": "x" * 90})         # 90 characters: 3.0 s at the limit
+        self.assertEqual(w.run(TYPING, "--out", "a.html", "--duration", "9", "--text-file", t, "--accent", "F97316").returncode, 0)
+        # the hold keeps the window from ending later than D - 0.6, so D - 0.6 - 0.5 must be at least 3.0 s: D = 4.1 s
+        for dur, code in (("4.1", 0), ("4.09", 2)):
+            r = w.run(TYPING, "--out", "b.html", "--duration", dur, "--text-file", t, "--accent", "F97316")
+            self.assertEqual(r.returncode, code, (dur, r.stderr))
+        # the hold at the end can also be the limit: a lower speed cannot help once the clip is too short
+        r = w.run(TYPING, "--out", "c.html", "--duration", "3.5", "--speed", "0.25", "--text-file", t, "--accent", "F97316")
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("no --speed can help", r.stderr)
+
+    def test_a_lower_speed_is_named_as_a_fix_when_it_helps(self):
+        w = Work(self)
+        t = w.json("t.json", {"prompt": "x" * 90})
+        r = w.run(TYPING, "--out", "a.html", "--duration", "8", "--speed", "3", "--text-file", t, "--accent", "F97316")
+        self.assertEqual(r.returncode, 2, r.stderr)
+        self.assertIn("lower --speed", r.stderr)
+        self.assertEqual(w.run(TYPING, "--out", "b.html", "--duration", "8", "--speed", "1", "--text-file", t, "--accent", "F97316").returncode, 0)
 
     def test_contrast_maths(self):
         self.assertAlmostEqual(fc.contrast("000000", "FFFFFF"), 21.0, places=2)
