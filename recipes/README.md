@@ -6,4 +6,4 @@ A template teaches. A brand's bot reads it, builds its own recipe, tries it, and
 
 Recipes ship whole first, in today's file format. The `recipe.yaml` shown in the scaffold is the later format.
 
-Start a new recipe from [`_template/`](_template/). If it needs a block or effect that does not exist yet, add it in the same pull request. See [../docs/DESIGN.md](../docs/DESIGN.md) and [../CONTRIBUTING.md](../CONTRIBUTING.md). This folder is a scaffold; there are no recipes in this repository yet.
+Start a new recipe from [`_template/`](_template/). If it needs a block or effect that does not exist yet, add it in the same pull request. See [../docs/DESIGN.md](../docs/DESIGN.md) and [../CONTRIBUTING.md](../CONTRIBUTING.md). The first recipe template here is [`p-carousel`](p-carousel/), with its source noted in [SOURCE.md](SOURCE.md).
