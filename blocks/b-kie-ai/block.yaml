@@ -1,0 +1,31 @@
+# Proposed format. This schema is not finalized, and CI does not validate it yet.
+id: b-kie-ai
+kind: component
+variation: default
+label: Kie image
+summary: Make one AI still image with the Kie API and save it as a PNG in the work folder.
+
+inputs:
+  - id: prompt_file
+    type: text
+    required: true
+    cardinality: one
+    description: Text file in the work folder holding the prompt.
+  - id: reference
+    type: image
+    required: false
+    cardinality: many
+    description: Optional reference images, inside the work folder, for image-to-image.
+
+outputs:
+  - id: image
+    type: image
+    cardinality: one
+    description: The generated PNG, written inside the work folder.
+
+needs:
+  tools:
+    - python3
+    - ffmpeg
+  providers:
+    - kie
