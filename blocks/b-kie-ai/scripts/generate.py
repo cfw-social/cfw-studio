@@ -92,6 +92,8 @@ class Failed(Exception):
     pass
 
 
+_ALNUM = re.compile("[^A-Za-z0-9]+")
+WITHHELD = "(server message withheld: it contained the API key)"
 _CONTROL = re.compile("[\x00-\x1f\x7f-\x9f\u2028\u2029]+")
 _FINAL_DONE = False
 
@@ -111,6 +113,10 @@ def safe_text(value, cap=300):
         squeezed = "".join(c for c in text if unicodedata.category(c) not in ("Cc", "Cf", "Zl", "Zp"))
         if _KEY in squeezed:
             text = squeezed.replace(_KEY, "<key>")
+        # a key with anything else put inside it (spaces, hyphens, dots ...): compare letters and digits only
+        wanted = _ALNUM.sub("", _KEY)
+        if len(wanted) >= 8 and wanted in _ALNUM.sub("", text):
+            return WITHHELD
     text = re.sub(r"https?://\S+", "<url>", text)
     text = _CONTROL.sub(" ", text)
     if _KEY:

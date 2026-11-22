@@ -98,7 +98,7 @@ A short summary of the limits below. Where this README does not say, it reads "n
 
 | What | Status | Detail |
 |---|---|---|
-| Automated tests | 63 tests, as of 2026-11-22 | `python3 -m unittest discover -s blocks/b-kie-ai/test`, from the repository root. A fake Kie server runs on `127.0.0.1`. |
+| Automated tests | 65 tests, as of 2026-11-22 | `python3 -m unittest discover -s blocks/b-kie-ai/test`, from the repository root. A fake Kie server runs on `127.0.0.1`. |
 | Run on which operating systems | macOS (Apple silicon) only; Linux and Windows not run | Python 3.15.2, Node 25.9.0, ffmpeg 8.1 on one Apple-silicon Mac. |
 | Run with a real provider account | not run with a real account | Nothing here has run against the live provider. |
 | Used in a real start-to-finish recipe run | only against a local fake server | Only the local fake server; no live Kie call has been made. |
@@ -116,7 +116,7 @@ The tests cover: success, a failed task, a timeout, an oversized download, a red
 ## Limits and known gaps
 
 - Image generation only. No video.
-- The key is removed from server text in its plain form only. If a server echoed the key in another encoding (for example base64), that form would not be recognised and would be printed.
+- The key is removed from server text. If a server echoes it with spaces, dots, hyphens or control characters put inside it, the whole message is withheld and a fixed line is printed instead. An encoded form of the key (for example base64) is not recognised and would be printed.
 - **Not proven with a real account.** Nothing here has run against live Kie. The tests use a fake server.
 - **Checked against Kie's public docs on 2026-11-22** (docs.kie.ai, read as reference data): create call and `model`/`input` body, `data.taskId`; the status call `recordInfo`, its states, `resultJson` as a JSON string, `failCode` and `failMsg`, and body codes (200, 401, 402, 422, 429, 455, 500, 501 and more; HTTP is 200 even on failure); the file stream upload call (`file`, `uploadPath`, `fileName`, `data.downloadUrl`). Pages: `market/google/nano-banana`, `market/common/get-task-detail`, `file-upload-api/upload-file-stream`, `file-upload-api/quickstart`.
 - **Model shapes confirmed in the docs (2026-11-22):** `z-image` (`market/z-image/z-image`: `prompt` up to 1000 characters, `aspect_ratio` one of five, PNG output) and `gpt-image-2-image-to-image` (`market/gpt/gpt-image-2-image-to-image`: `prompt`, `input_urls` up to 16, `aspect_ratio`, `resolution` 1K/2K/4K with the stated exclusions). Any other `--model` is sent with the same fields and is **not confirmed in the docs**; check its page first.
