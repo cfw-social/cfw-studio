@@ -1,0 +1,367 @@
+{
+  "manifestFormat": 1,
+  "recipe": "r-reels-pip",
+  "recipeVersion": "2026.11.22",
+  "label": "Picture-in-picture reel",
+  "deliverable": {
+    "kind": "video",
+    "aspect": "9:16",
+    "width": 1080,
+    "height": 1920,
+    "durationSec": {
+      "min": 20,
+      "max": 60
+    }
+  },
+  "needs": {
+    "os": [
+      "macos"
+    ],
+    "engines": [
+      "codex",
+      "claude-code"
+    ],
+    "tools": [
+      "ffmpeg",
+      "ffprobe",
+      "node>=22",
+      "npm",
+      "python3>=3.10",
+      "whisper-cli"
+    ],
+    "providers": [],
+    "features": [
+      "order-brand-v2"
+    ]
+  },
+  "inputs": [
+    {
+      "id": "talking_head",
+      "label": "Talking-head video",
+      "kinds": [
+        "video"
+      ],
+      "required": true,
+      "count": {
+        "min": 1,
+        "max": 1
+      },
+      "constraints": {
+        "durationSec": {
+          "min": 20,
+          "max": 60
+        },
+        "orientation": "any"
+      },
+      "neededAt": "start"
+    },
+    {
+      "id": "broll",
+      "label": "B-roll clips",
+      "kinds": [
+        "video"
+      ],
+      "required": false,
+      "count": {
+        "min": 0,
+        "max": null
+      },
+      "constraints": {
+        "orientation": "any"
+      },
+      "neededAt": {
+        "step": "plan_beats"
+      }
+    },
+    {
+      "id": "cta",
+      "label": "Call to action",
+      "kinds": [
+        "text"
+      ],
+      "required": false,
+      "count": {
+        "min": 0,
+        "max": 1
+      },
+      "neededAt": {
+        "step": "composite"
+      },
+      "default": "brand"
+    },
+    {
+      "id": "outro",
+      "label": "Outro clip",
+      "kinds": [
+        "video"
+      ],
+      "required": false,
+      "count": {
+        "min": 0,
+        "max": 1
+      },
+      "constraints": {
+        "orientation": "portrait"
+      },
+      "neededAt": {
+        "step": "composite"
+      }
+    }
+  ],
+  "steps": [
+    {
+      "id": "prepare_footage",
+      "label": "Prepare footage",
+      "weight": 10,
+      "runsOn": "computer",
+      "uses": {
+        "tools": [
+          "ffmpeg",
+          "python3"
+        ]
+      },
+      "when": "always",
+      "instructions": "steps/01-prepare-footage.md",
+      "saves": [
+        {
+          "id": "voice_track",
+          "kind": "video",
+          "preview": false
+        }
+      ],
+      "checks": [
+        {
+          "id": "bed_has_audio",
+          "label": "Voice bed has an audio stream"
+        },
+        {
+          "id": "bed_not_black",
+          "label": "Video is not black"
+        },
+        {
+          "id": "bed_loudness",
+          "label": "Voice bed is near -14 LUFS"
+        }
+      ],
+      "maxCheckRetries": 2,
+      "canAsk": [
+        "talking_head"
+      ]
+    },
+    {
+      "id": "transcribe",
+      "label": "Transcribe",
+      "weight": 10,
+      "runsOn": "computer",
+      "uses": {
+        "tools": [
+          "ffmpeg",
+          "python3",
+          "whisper-cli"
+        ]
+      },
+      "when": "always",
+      "instructions": "steps/02-transcribe.md",
+      "saves": [
+        {
+          "id": "transcripts",
+          "kind": "json",
+          "preview": false
+        }
+      ],
+      "checks": [
+        {
+          "id": "words_found",
+          "label": "Words found in the transcript"
+        }
+      ],
+      "maxCheckRetries": 2
+    },
+    {
+      "id": "plan_beats",
+      "label": "Plan the background beats",
+      "weight": 15,
+      "runsOn": "computer",
+      "uses": {
+        "tools": [
+          "ffmpeg",
+          "node>=22",
+          "python3"
+        ]
+      },
+      "when": "always",
+      "instructions": "steps/03-plan-beats.md",
+      "saves": [
+        {
+          "id": "beat_list",
+          "kind": "json",
+          "preview": false
+        }
+      ],
+      "checks": [
+        {
+          "id": "beats_cover_bed",
+          "label": "Beats cover the whole voice bed"
+        }
+      ],
+      "maxCheckRetries": 2,
+      "canAsk": [
+        "broll"
+      ]
+    },
+    {
+      "id": "build_background",
+      "label": "Build the background track",
+      "weight": 30,
+      "runsOn": "computer",
+      "uses": {
+        "tools": [
+          "ffmpeg",
+          "python3",
+          "node>=22",
+          "npm"
+        ]
+      },
+      "when": "always",
+      "instructions": "steps/04-build-background.md",
+      "saves": [
+        {
+          "id": "background",
+          "kind": "video",
+          "preview": false
+        }
+      ],
+      "checks": [
+        {
+          "id": "bg_not_black",
+          "label": "Background is not black"
+        },
+        {
+          "id": "bg_matches_bed",
+          "label": "Background length matches the voice bed"
+        }
+      ],
+      "maxCheckRetries": 2
+    },
+    {
+      "id": "composite",
+      "label": "Composite the PIP reel",
+      "weight": 20,
+      "runsOn": "computer",
+      "uses": {
+        "tools": [
+          "ffmpeg",
+          "python3",
+          "node>=22",
+          "npm"
+        ]
+      },
+      "when": "always",
+      "instructions": "steps/05-composite.md",
+      "saves": [
+        {
+          "id": "assembled_video",
+          "kind": "video",
+          "preview": false
+        }
+      ],
+      "checks": [
+        {
+          "id": "vo_continuous_bed",
+          "label": "Voice is continuous under the whole reel"
+        },
+        {
+          "id": "pip_zone_clear",
+          "label": "Graphics stay out of the PIP zone"
+        }
+      ],
+      "maxCheckRetries": 2
+    },
+    {
+      "id": "final_checks",
+      "label": "Final checks and captions",
+      "weight": 15,
+      "runsOn": "computer",
+      "uses": {
+        "tools": [
+          "ffmpeg",
+          "python3"
+        ]
+      },
+      "when": "always",
+      "instructions": "steps/06-final-checks.md",
+      "saves": [
+        {
+          "id": "final_video",
+          "kind": "video",
+          "preview": true
+        },
+        {
+          "id": "cover",
+          "kind": "image",
+          "preview": true
+        },
+        {
+          "id": "captions",
+          "kind": "json",
+          "preview": false
+        }
+      ],
+      "checks": [
+        {
+          "id": "qa_gate",
+          "label": "Reel passes the QA gate"
+        },
+        {
+          "id": "duration_window",
+          "label": "Duration is within the 20\u201362 s window"
+        },
+        {
+          "id": "canvas_1080x1920",
+          "label": "Canvas is 1080\u00d71920"
+        },
+        {
+          "id": "frame_not_black",
+          "label": "Sampled frames are not black"
+        },
+        {
+          "id": "bg_has_content",
+          "label": "The background behind and around the speaker card is not black: real footage or a card is visible in every sample frame."
+        },
+        {
+          "id": "face_whole_in_pip",
+          "label": "The complete face shows in the speaker card, forehead to chin, not cropped at the top or bottom and not stretched."
+        },
+        {
+          "id": "pip_on_screen_with_margin",
+          "label": "The speaker card is fully on screen with a clear gap below it (a 110 px margin) and a ring in the brand colour."
+        },
+        {
+          "id": "content_above_pip_only",
+          "label": "Cards and captions occupy the upper zone only; nothing invades the bottom band where the speaker card sits."
+        },
+        {
+          "id": "bg_fills_full_width",
+          "label": "The background fills the full frame width: no side bars, no top or bottom bands, no distortion."
+        },
+        {
+          "id": "captions_legible_not_over_pip",
+          "label": "Captions are legible, the emphasis words are in the brand accent, and no caption overlaps the speaker card."
+        },
+        {
+          "id": "latin_script_only",
+          "label": "All captions and card text use Latin script only."
+        },
+        {
+          "id": "broll_beats_correct",
+          "label": "Where the plan placed a b-roll clip, that clip is on screen; where it did not, a card is."
+        },
+        {
+          "id": "cover_is_moneyshot",
+          "label": "Frame 0 shows the speaker card over a content beat (the planned money shot): not black, not a title card, not a fade."
+        }
+      ],
+      "maxCheckRetries": 2
+    }
+  ]
+}

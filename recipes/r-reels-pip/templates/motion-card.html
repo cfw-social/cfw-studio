@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>motion card</title>
+<!--
+  Picture-in-picture reel motion card. 1080x1920, picture-in-picture safe: all content stays above the
+  680 px band the speaker card uses. Fill it with scripts/fill_page.py --card motion; never by
+  hand. Placeholders: DURATION, BG, ACCENT, FG, EYEBROW, GHOST, TITLE_HTML.
+  Fonts Oswald, Inter and JetBrains Mono (SIL Open Font Licence) must be installed on the
+  machine that renders; each is declared with a local() source so nothing is requested.
+  The animation library is the file gsap.min.js beside the page (see b-hyperframes).
+-->
+<style>
+  @font-face { font-family: "Oswald"; src: local("Oswald"); }
+  @font-face { font-family: "Inter"; src: local("Inter"); }
+  @font-face { font-family: "JetBrains Mono"; src: local("JetBrains Mono"); }
+
+  :root {
+    --bg: #{{BG}};
+    --accent: #{{ACCENT}};
+    --fg: #{{FG}};
+    --pip-band: 680px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--bg); }
+
+  .mc-root {
+    position: absolute; left: 0; top: 0; width: 1080px; height: 1920px;
+    background: var(--bg); overflow: hidden; font-family: "Inter", sans-serif;
+  }
+  .mc-grid {
+    position: absolute; left: 0; top: 0; width: 1080px; height: 1920px;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 120px 120px;
+  }
+  .mc-glow {
+    position: absolute; bottom: calc(var(--pip-band) + 40px); left: -80px;
+    width: 560px; height: 560px;
+    background: radial-gradient(circle, color-mix(in srgb, var(--accent) 18%, transparent) 0%, transparent 70%);
+  }
+  .mc-content {
+    position: absolute; top: 0; left: 0; right: 0; bottom: var(--pip-band);
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 140px 80px 60px; gap: 32px; overflow: hidden;
+  }
+  .mc-eyebrow {
+    font-family: "JetBrains Mono", monospace; font-size: 28px; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent);
+    opacity: 0; transform: translateY(12px);
+  }
+  .mc-ghost {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-family: "Oswald", sans-serif; font-size: 320px; font-weight: 900;
+    text-transform: uppercase; color: var(--fg); opacity: 0.04; letter-spacing: -0.04em;
+    white-space: nowrap; max-width: 1080px; overflow: hidden;
+  }
+  .mc-title {
+    font-family: "Oswald", sans-serif; font-size: 96px; font-weight: 900; line-height: 1.0;
+    text-transform: uppercase; color: var(--fg); opacity: 0; transform: translateY(24px);
+  }
+  .mc-title .accent { color: var(--accent); }
+  .mc-rule { width: 0; height: 4px; background: var(--accent); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="mc-root" data-composition-id="root" data-start="0" data-duration="{{DURATION}}" data-width="1080" data-height="1920">
+  <div class="mc-grid"></div>
+  <div class="mc-glow"></div>
+  <div class="mc-ghost">{{GHOST}}</div>
+  <div class="mc-content">
+    <div class="mc-eyebrow" id="mc-eyebrow">{{EYEBROW}}</div>
+    <div class="mc-title" id="mc-title">{{TITLE_HTML}}</div>
+    <div class="mc-rule" id="mc-rule"></div>
+  </div>
+</div>
+<script src="gsap.min.js"></script>
+<script>
+(function () {
+  var g = window.__gsap || window.gsap;
+  if (!g) { return; }
+  var tl = g.timeline({ paused: true });
+  tl.to(".mc-glow", { opacity: 0.8, duration: 0.6, ease: "power1.out" }, 0)
+    .to("#mc-eyebrow", { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 0.1)
+    .to("#mc-title", { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 0.25)
+    .to("#mc-rule", { width: 140, duration: 0.4, ease: "power2.out" }, 0.55);
+  if (!window.__timelines) { window.__timelines = {}; }
+  window.__timelines["root"] = tl;
+})();
+</script>
+</body>
+</html>
