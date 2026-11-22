@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  /* Declare every named font, even an installed one. src: local() reads the installed copy. */
+  @font-face { font-family: "Helvetica"; src: local("Helvetica"), local("Arial"); }
+  html, body { margin: 0; background: #101820; }
+  #root { position: relative; width: 360px; height: 640px; overflow: hidden; background: #101820; }
+  #title { position: absolute; left: 0; right: 0; top: 260px; text-align: center; color: #f4f4f4;
+           font-family: "Helvetica", sans-serif; font-size: 48px; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="minimal" data-start="0" data-duration="1" data-width="360" data-height="640">
+  <div id="title" class="clip" data-start="0" data-duration="1" data-track-index="0">Hello</div>
+  <script src="gsap.min.js"></script>
+  <script>
+    window.__timelines = window.__timelines || {};
+    var tl = gsap.timeline({ paused: true });
+    tl.from("#title", { y: 40, opacity: 0, duration: 0.5, ease: "power3.out" }, 0.1);
+    window.__timelines["minimal"] = tl;
+  </script>
+</div>
+</body>
+</html>
