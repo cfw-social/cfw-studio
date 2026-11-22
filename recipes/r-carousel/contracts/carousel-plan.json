@@ -1,0 +1,276 @@
+{
+  "contractFormat": 1,
+  "revision": 1,
+  "requestInputs": {
+    "topic": {
+      "id": "topic",
+      "schemaId": "carousel_topic",
+      "schemaVersion": 1,
+      "kind": "text",
+      "cardinality": "one",
+      "path": "inputs/topic/topic.md"
+    },
+    "cta": {
+      "id": "cta",
+      "schemaId": "carousel_cta",
+      "schemaVersion": 1,
+      "kind": "text",
+      "cardinality": "one",
+      "path": "inputs/cta/cta.md"
+    }
+  },
+  "steps": [
+    {
+      "stepId": "outline",
+      "when": "always",
+      "runsOn": "computer",
+      "inputs": [
+        {
+          "id": "topic",
+          "schemaId": "carousel_topic",
+          "schemaVersion": 1,
+          "kind": "text",
+          "cardinality": "one",
+          "path": "inputs/topic/topic.md",
+          "source": {
+            "request": "topic"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "outline",
+          "schemaId": "carousel_outline",
+          "schemaVersion": 1,
+          "kind": "json",
+          "cardinality": "one",
+          "path": "saves/outline.json"
+        }
+      ],
+      "capabilities": [
+        "order-brand-v2"
+      ],
+      "tools": [
+        "python3"
+      ],
+      "providers": [],
+      "checks": [
+        "outline_shape"
+      ]
+    },
+    {
+      "stepId": "author_slides",
+      "when": "always",
+      "runsOn": "computer",
+      "inputs": [
+        {
+          "id": "outline",
+          "schemaId": "carousel_outline",
+          "schemaVersion": 1,
+          "kind": "json",
+          "cardinality": "one",
+          "path": "saves/outline.json",
+          "source": {
+            "step": "outline",
+            "output": "outline"
+          },
+          "readPath": "prior/outline.json"
+        },
+        {
+          "id": "cta",
+          "schemaId": "carousel_cta",
+          "schemaVersion": 1,
+          "kind": "text",
+          "cardinality": "one",
+          "path": "inputs/cta/cta.md",
+          "source": {
+            "request": "cta"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "slide_copy",
+          "schemaId": "carousel_copy",
+          "schemaVersion": 1,
+          "kind": "json",
+          "cardinality": "one",
+          "path": "saves/slide_copy.json"
+        },
+        {
+          "id": "carousel_html",
+          "schemaId": "carousel_html",
+          "schemaVersion": 1,
+          "kind": "text",
+          "cardinality": "one",
+          "path": "saves/carousel_html.md"
+        }
+      ],
+      "capabilities": [
+        "order-brand-v2"
+      ],
+      "tools": [
+        "python3"
+      ],
+      "providers": [],
+      "checks": [
+        "html_has_slides",
+        "brand_vars_set"
+      ]
+    },
+    {
+      "stepId": "render_slides",
+      "when": "always",
+      "runsOn": "computer",
+      "inputs": [
+        {
+          "id": "carousel_html",
+          "schemaId": "carousel_html",
+          "schemaVersion": 1,
+          "kind": "text",
+          "cardinality": "one",
+          "path": "saves/carousel_html.md",
+          "source": {
+            "step": "author_slides",
+            "output": "carousel_html"
+          },
+          "readPath": "prior/carousel_html.md"
+        },
+        {
+          "id": "slide_copy",
+          "schemaId": "carousel_copy",
+          "schemaVersion": 1,
+          "kind": "json",
+          "cardinality": "one",
+          "path": "saves/slide_copy.json",
+          "source": {
+            "step": "author_slides",
+            "output": "slide_copy"
+          },
+          "readPath": "prior/slide_copy.json"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "slide_images",
+          "schemaId": "carousel_images",
+          "schemaVersion": 1,
+          "kind": "image",
+          "cardinality": "slides",
+          "path": "saves/slide_{n}.png"
+        },
+        {
+          "id": "slides",
+          "schemaId": "carousel_image_index",
+          "schemaVersion": 1,
+          "kind": "json",
+          "cardinality": "one",
+          "path": "saves/slides.json"
+        },
+        {
+          "id": "qa_report",
+          "schemaId": "carousel_qa",
+          "schemaVersion": 1,
+          "kind": "json",
+          "cardinality": "one",
+          "path": "saves/qa_report.json"
+        },
+        {
+          "id": "cover",
+          "schemaId": "carousel_cover",
+          "schemaVersion": 1,
+          "kind": "image",
+          "cardinality": "one",
+          "path": "saves/cover.png"
+        },
+        {
+          "id": "slide_sheet",
+          "schemaId": "carousel_sheet",
+          "schemaVersion": 1,
+          "kind": "image",
+          "cardinality": "one",
+          "path": "saves/slide_sheet.png"
+        }
+      ],
+      "capabilities": [
+        "order-brand-v2"
+      ],
+      "tools": [
+        "ffmpeg",
+        "node>=22",
+        "npx",
+        "chromium"
+      ],
+      "providers": [],
+      "checks": [
+        "slide_dims",
+        "slide_not_blank",
+        "vision_qa_pass"
+      ]
+    },
+    {
+      "stepId": "captions",
+      "when": "always",
+      "runsOn": "computer",
+      "inputs": [
+        {
+          "id": "slide_copy",
+          "schemaId": "carousel_copy",
+          "schemaVersion": 1,
+          "kind": "json",
+          "cardinality": "one",
+          "path": "saves/slide_copy.json",
+          "source": {
+            "step": "author_slides",
+            "output": "slide_copy"
+          },
+          "readPath": "prior/slide_copy.json"
+        },
+        {
+          "id": "slides",
+          "schemaId": "carousel_image_index",
+          "schemaVersion": 1,
+          "kind": "json",
+          "cardinality": "one",
+          "path": "saves/slides.json",
+          "source": {
+            "step": "render_slides",
+            "output": "slides"
+          },
+          "readPath": "prior/slides.json"
+        },
+        {
+          "id": "cta",
+          "schemaId": "carousel_cta",
+          "schemaVersion": 1,
+          "kind": "text",
+          "cardinality": "one",
+          "path": "inputs/cta/cta.md",
+          "source": {
+            "request": "cta"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "captions",
+          "schemaId": "carousel_captions",
+          "schemaVersion": 1,
+          "kind": "json",
+          "cardinality": "one",
+          "path": "saves/captions.json"
+        }
+      ],
+      "capabilities": [
+        "order-brand-v2"
+      ],
+      "tools": [
+        "python3"
+      ],
+      "providers": [],
+      "checks": [
+        "captions_per_target"
+      ]
+    }
+  ]
+}
