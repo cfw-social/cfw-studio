@@ -1,0 +1,279 @@
+{
+  "manifestFormat": 1,
+  "recipe": "r-inspired-reel",
+  "recipeVersion": "2026.11.1",
+  "label": "Inspired reel",
+  "deliverable": {
+    "kind": "video",
+    "aspect": "9:16",
+    "width": 1080,
+    "height": 1920,
+    "durationSec": {
+      "min": 10,
+      "max": 100
+    }
+  },
+  "needs": {
+    "os": [
+      "macos"
+    ],
+    "engines": [
+      "codex",
+      "claude-code"
+    ],
+    "tools": [
+      "ffmpeg",
+      "python3",
+      "node>=22",
+      "whisper-cpp"
+    ],
+    "providers": [
+      "heygen"
+    ]
+  },
+  "inputs": [
+    {
+      "id": "reference_reel",
+      "label": "Reference reel",
+      "kinds": [
+        "video"
+      ],
+      "required": true,
+      "count": {
+        "min": 1,
+        "max": 1
+      },
+      "neededAt": "start",
+      "prompt": "A reel whose shape you want to follow, as a video file you have the right to study. Only its length, pace, cut rate and beat structure are used.",
+      "constraints": {
+        "durationSec": {
+          "min": 15,
+          "max": 90
+        },
+        "orientation": "any"
+      }
+    },
+    {
+      "id": "topic",
+      "label": "Your topic",
+      "kinds": [
+        "text"
+      ],
+      "required": true,
+      "count": {
+        "min": 1,
+        "max": 1
+      },
+      "neededAt": {
+        "step": "reference_to_script"
+      },
+      "prompt": "What should YOUR reel be about? One or two sentences, on your brand's own subject."
+    },
+    {
+      "id": "avatar_id",
+      "label": "HeyGen avatar",
+      "kinds": [
+        "text"
+      ],
+      "required": true,
+      "count": {
+        "min": 1,
+        "max": 1
+      },
+      "neededAt": {
+        "step": "narrate"
+      },
+      "prompt": "The HeyGen avatar id of your own avatar, of a person who agreed to be shown."
+    },
+    {
+      "id": "voice_id",
+      "label": "HeyGen voice",
+      "kinds": [
+        "text"
+      ],
+      "required": true,
+      "count": {
+        "min": 1,
+        "max": 1
+      },
+      "neededAt": {
+        "step": "narrate"
+      },
+      "prompt": "The HeyGen voice id of your own voice."
+    },
+    {
+      "id": "cta",
+      "label": "Call to action",
+      "kinds": [
+        "text"
+      ],
+      "required": false,
+      "count": {
+        "min": 0,
+        "max": 1
+      },
+      "neededAt": {
+        "step": "reference_to_script"
+      },
+      "prompt": "The closing line the reel should end on. Leave empty to let the script's last beat decide."
+    }
+  ],
+  "steps": [
+    {
+      "id": "reference_to_script",
+      "label": "Read the reference's format and write a new script",
+      "weight": 45,
+      "runsOn": "computer",
+      "uses": {
+        "tools": [
+          "ffmpeg",
+          "python3",
+          "whisper-cpp"
+        ]
+      },
+      "when": "always",
+      "instructions": "steps/01-reference-to-script.md",
+      "saves": [
+        {
+          "id": "format",
+          "kind": "json",
+          "preview": false
+        },
+        {
+          "id": "script",
+          "kind": "text",
+          "preview": true
+        },
+        {
+          "id": "overlap",
+          "kind": "json",
+          "preview": false
+        },
+        {
+          "id": "cleanup",
+          "kind": "json",
+          "preview": false
+        }
+      ],
+      "checks": [
+        {
+          "id": "words_found",
+          "label": "Words found in the reference transcript"
+        },
+        {
+          "id": "format_measured",
+          "label": "format.json holds only numbers and labels"
+        },
+        {
+          "id": "script_shape",
+          "label": "The script has the reference's beats and word count"
+        },
+        {
+          "id": "no_shared_run",
+          "label": "The script shares no run of six words with the reference"
+        },
+        {
+          "id": "reference_deleted",
+          "label": "The reference transcript and audio are deleted and the check passes"
+        }
+      ],
+      "maxCheckRetries": 2,
+      "canAsk": [
+        "reference_reel"
+      ]
+    },
+    {
+      "id": "narrate",
+      "label": "Narrate the script with the brand's avatar",
+      "weight": 25,
+      "runsOn": "computer",
+      "uses": {
+        "tools": [
+          "ffmpeg",
+          "python3"
+        ],
+        "providers": [
+          [
+            "heygen"
+          ]
+        ]
+      },
+      "when": "always",
+      "instructions": "steps/02-narration.md",
+      "saves": [
+        {
+          "id": "base_reel",
+          "kind": "video",
+          "preview": false
+        },
+        {
+          "id": "render_record",
+          "kind": "json",
+          "preview": false
+        }
+      ],
+      "checks": [
+        {
+          "id": "narration_has_audio",
+          "label": "The narration has a picture and a sound track"
+        },
+        {
+          "id": "base_reel_canvas",
+          "label": "The base reel is 1080x1920 at 30 fps"
+        }
+      ],
+      "maxCheckRetries": 1,
+      "canAsk": [
+        "avatar_id",
+        "voice_id"
+      ]
+    },
+    {
+      "id": "finish",
+      "label": "Captions, sound, quality gate and final check",
+      "weight": 30,
+      "runsOn": "computer",
+      "uses": {
+        "tools": [
+          "ffmpeg",
+          "python3",
+          "node>=22",
+          "whisper-cpp"
+        ]
+      },
+      "when": "always",
+      "instructions": "steps/03-captions-and-checks.md",
+      "saves": [
+        {
+          "id": "final",
+          "kind": "video",
+          "preview": true
+        },
+        {
+          "id": "qa_report",
+          "kind": "json",
+          "preview": false
+        }
+      ],
+      "checks": [
+        {
+          "id": "plan_valid",
+          "label": "The caption plan passes check_plan"
+        },
+        {
+          "id": "qa_gate",
+          "label": "The reel passes the b-qa-gate checks"
+        },
+        {
+          "id": "looks_answered",
+          "label": "Every look was answered yes"
+        },
+        {
+          "id": "nothing_of_reference_left",
+          "label": "No reference file or sentence remains"
+        }
+      ],
+      "maxCheckRetries": 2
+    }
+  ]
+}

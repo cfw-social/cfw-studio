@@ -1,0 +1,59 @@
+{
+  "recipe": "r-inspired-reel",
+  "spec_version": 1,
+  "_note": "Read by b-qa-gate (check.py --kind reel). The duration window here is the recipe's hard limit; make_spec.py narrows it to the reference's length for each order. Every perceptual item becomes a look the bot must answer yes or no, then record with --finalize.",
+  "checks": [
+    {
+      "id": "qa_gate",
+      "type": "qa_gate",
+      "format": "reel",
+      "desc": "Reel floor: video and audio present, 1080x1920, 30 fps, loudness near -14 LUFS, frame 0 is not black."
+    },
+    {
+      "id": "duration_window",
+      "type": "duration_window",
+      "min_s": 10,
+      "max_s": 100,
+      "desc": "Length of the new reel. make_spec.py narrows this to the reference length, plus or minus 15 percent."
+    },
+    {
+      "id": "canvas_1080x1920",
+      "type": "dims",
+      "w": 1080,
+      "h": 1920,
+      "desc": "Exact 9:16 portrait canvas."
+    },
+    {
+      "id": "voice_not_silent",
+      "type": "mean_volume",
+      "min_db": -40,
+      "max_db": -3,
+      "desc": "The narration is audible: mean volume between -40 and -3 dB."
+    },
+    {
+      "id": "avatar_on_screen",
+      "type": "perceptual",
+      "desc": "(a) The avatar is on screen in every sampled frame, sharp, and its lips follow the voice."
+    },
+    {
+      "id": "captions_readable",
+      "type": "perceptual",
+      "desc": "(b) Captions are readable, follow the spoken words, and stay clear of the face."
+    },
+    {
+      "id": "shape_matches_format",
+      "type": "perceptual",
+      "desc": "(c) The reel opens with a hook, then its points, then a closing call to action, in the order and rough proportion saved in format.json."
+    },
+    {
+      "id": "nothing_of_the_reference",
+      "type": "perceptual",
+      "desc": "(d) Nothing in the picture or the words matches the reference reel. The topic, the voice and the avatar are the brand's own."
+    },
+    {
+      "id": "cover_frame_clean",
+      "type": "perceptual",
+      "desc": "(e) Frame 0 is a clean cover: not black, not a half-drawn caption."
+    }
+  ]
+}
