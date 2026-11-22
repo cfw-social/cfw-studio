@@ -46,12 +46,14 @@ def sfx_path(name):
     return path
 
 
-def build_command(reel, captions, out, grade, cues, music):
+def build_command(reel, captions, out, grade, cues, music, timing):
     """The full ffmpeg argument list. `captions` is the transparent caption render or None;
     `cues` is [(path, ms, gain)]; `music` is (path, gain) or None.
 
     Input 0 is the reel. The grade is applied to the reel's picture only, then the captions are laid over
     it, so the captions keep their exact colours. The reel's audio is used as it is.
+    `timing` is the reel's own {"fps", "frames", "seconds"}: the output gets exactly that many frames at that
+    rate, and the sound is padded or cut to that length, so nothing mixed in can lengthen or shorten it.
     """
     cmd = ["ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error", "-y", "-protocol_whitelist", "file"]
     cmd += pl.input_format_args(reel, "--reel") + ["-i", reel]
@@ -72,17 +74,18 @@ def build_command(reel, captions, out, grade, cues, music):
         parts.append("[%d:a]volume=%.3f[m]" % (len(cues) + first, music[1]))
         mix += "[m]"
         n += 1
+    fit = "apad=whole_dur=%.6f,atrim=end=%.6f,asetpts=N/SR/TB" % (timing["seconds"], timing["seconds"])
     if n == 1:
-        audio = "[0:a]anull[aout]"
+        audio = "[0:a]%s[aout]" % fit
     else:
-        audio = ";".join(parts) + ";%samix=inputs=%d:normalize=0:duration=first[aout]" % (mix, n)
+        audio = ";".join(parts) + ";%samix=inputs=%d:normalize=0:duration=first,%s[aout]" % (mix, n, fit)
     if captions:
         video = "[0:v]%s,format=yuv420p[g];[g][1:v]overlay=format=auto:eof_action=pass,format=yuv420p[vout]" % pl.GRADES[grade]
     else:
         video = "[0:v]%s,format=yuv420p[vout]" % pl.GRADES[grade]
     cmd += ["-filter_complex", "%s;%s" % (video, audio),
             "-map", "[vout]", "-map", "[aout]",
-            "-c:v", "libx264", "-preset", "medium", "-crf", "19", "-r", "30",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "19", "-r", timing["fps"], "-frames:v", str(timing["frames"]),
             "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2", "-movflags", "+faststart", out]
     return cmd
 
@@ -120,6 +123,7 @@ def main(argv):
             return 2
         pl.require_video(reel, "--reel")
         duration = pl.probe_duration(reel)
+        timing = pl.probe_video_timing(reel, "--reel")
         pl.require_sound_plan(plan, duration, root, captions=False, sfx=args.sfx == "on")
         if captions:
             pl.require_overlay(captions, reel, "--captions-mov")
@@ -136,7 +140,7 @@ def main(argv):
         used = {os.path.realpath(x) for x in [x for x in (reel, plan_path, captions) if x] + [c[0] for c in cues] + ([music[0]] if music else [])}
         if os.path.realpath(out) in used:
             raise pl.PlanError(["--out must not be one of the input files"])
-        cmd = build_command(reel, captions, out, plan["grade"], cues, music)
+        cmd = build_command(reel, captions, out, plan["grade"], cues, music, timing)
     except FileNotFoundError as e:
         sys.stderr.write("mux.py: a required tool is missing: %s\n" % e)
         return 3
@@ -145,7 +149,7 @@ def main(argv):
         return 0
     tmp = pl.temp_output(out, root, ".mp4", "--out")
     try:
-        cmd = build_command(reel, captions, tmp, plan["grade"], cues, music)
+        cmd = build_command(reel, captions, tmp, plan["grade"], cues, music, timing)
         try:
             res = subprocess.run(cmd, capture_output=True, text=True, check=False)
         except FileNotFoundError as e:

@@ -981,6 +981,48 @@ class Mix(WorkDir):
         with self.assertRaises(pl.PlanError):
             pl.input_format_args(self.path("list2.mp4"), "--reel")
 
+    def stream_frames(self, name):
+        out = subprocess.run(["ffprobe", "-v", "error", "-count_frames", "-select_streams", "v:0", "-show_entries",
+                              "stream=nb_read_frames,r_frame_rate", "-of", "json", self.path(name)], capture_output=True, text=True, check=True)
+        st = json.loads(out.stdout)["streams"][0]
+        return int(st["nb_read_frames"]), st["r_frame_rate"]
+
+    def make_timed_reel(self, name, fps, vsec, asec):
+        subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-f", "lavfi", "-i", "color=c=gray:s=160x284:r=%s:d=%s" % (fps, vsec),
+                        "-f", "lavfi", "-i", "sine=frequency=440:sample_rate=48000:d=%s" % asec, "-c:v", "libx264", "-pix_fmt", "yuv420p",
+                        "-c:a", "aac", self.path(name)], check=True)
+
+    def test_output_has_exactly_the_reels_frames_whatever_is_mixed_in(self):
+        subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-f", "lavfi", "-i", "sine=frequency=220:sample_rate=48000:duration=6",
+                        self.path("inputs", "long.wav")], check=True)
+        self.make_overlay("longer.mov", seconds=4)
+        self.make_overlay("shorter.mov", seconds=1)
+        self.make_overlay("equal.mov", seconds=3)
+        cases = [("30", 3, 3), ("30", 2.4833, 2.49), ("30", 3, 3.07), ("30", 3, 2.9), ("60", 3, 3), ("25", 3.04, 3.1),
+                 ("24", 3, 3), ("30000/1001", 3, 3)]
+        for fps, vsec, asec in cases:
+            self.make_timed_reel("r.mp4", fps, vsec, asec)
+            want = self.stream_frames("r.mp4")
+            for overlay in ("longer.mov", "shorter.mov", "equal.mov"):
+                for plan in (good_plan(sfx=[{"t": round(min(vsec, asec) - 0.1, 2), "name": "pop", "gain": 0.4}, {"t": round(min(vsec, asec) - 0.02, 2), "name": "whoosh-air", "gain": 0.3}]),
+                             good_plan(sfx=[{"t": 0.5, "name": "pop", "gain": 0.4}], music={"file": "inputs/long.wav", "gain": 0.2})):
+                    with self.subTest(fps=fps, vsec=vsec, asec=asec, overlay=overlay, music="music" in plan):
+                        self.write_plan(plan)
+                        r = run("mux.py", ["--reel", "r.mp4", "--captions-mov", overlay, "--plan", "plan.json", "--out", "out/x.mp4"], self.work)
+                        self.assertEqual(r.returncode, 0, r.stderr)
+                        self.assertEqual(self.stream_frames("out/x.mp4"), want)
+                        info = self.probe("out/x.mp4", "stream=codec_type,duration")
+                        vd = [float(s["duration"]) for s in info["streams"] if s["codec_type"] == "video"][0]
+                        self.assertAlmostEqual(vd, want[0] * (lambda a, b: b / a)(*[int(x) for x in want[1].split("/")]), delta=0.001)
+                        q = run("qa.py", ["--reel-in", "r.mp4", "--reel-out", "out/x.mp4", "--frames-dir", "out/qa", "--grade", "clean-bright"], self.work)
+                        self.assertEqual(q.returncode, 0, q.stderr)
+
+    def test_without_captions_the_frames_also_match(self):
+        self.make_timed_reel("reel.mp4", "30", 2.5, 2.57)
+        r = self.mux(good_plan())
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(self.stream_frames("out/polished.mp4"), self.stream_frames("reel.mp4"))
+
     def test_a_symlinked_gate_folder_is_refused(self):
         self.make_reel()
         self.assertEqual(self.mux(good_plan()).returncode, 0)

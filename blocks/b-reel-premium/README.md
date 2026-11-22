@@ -133,8 +133,12 @@ No captions: run `check_plan.py --captions off`, skip `build_comp.py` and the re
 - **Grade and mix.** `mux.py` makes one ffmpeg run. The reel's picture gets the grade first, then the caption
   render is laid over it, so the footage is graded and the captions are not. The reel's audio is used as it is:
   no loudness change, and `amix` runs with `normalize=0`, so its level does not move. Effects are delayed to
-  their times and mixed under it. Output is H.264 CRF 19 at 30 fps, AAC 192k, 48 kHz, stereo.
-- **Check.** `qa.py` confirms the output decodes, keeps the reel's length (one frame at 30 fps), and has
+  their times and mixed under it. Output is H.264 CRF 19, AAC 192k, 48 kHz, stereo.
+  **The output is always exactly as long as the reel:** the same number of picture frames at the same frame rate
+  (30 fps when the reel's rate cannot be read). A caption render that is longer or shorter, sound effects or music
+  that run past the end, and audio a few milliseconds longer or shorter than the picture never lengthen or
+  shorten it. The sound is cut or padded with silence to the picture's length.
+- **Check.** `qa.py` confirms the output decodes, has exactly the reel's frame count and frame rate, and has
   video and audio, then saves four frames and writes the stamp. With `--grade off` it also compares the average
   colour of the reel and the output (see Colour). A person or a vision step must still look at the frames:
   captions readable, accent on the emphasis words, nothing covering a face or card, grade subtle, effects
@@ -220,7 +224,7 @@ A short summary of the limits below. Where this README does not say, it reads "n
 
 | What | Status | Detail |
 |---|---|---|
-| Automated tests | 79 tests, as of 2026-11-22 | `python3 -m unittest discover -s blocks/b-reel-premium/test`, from the repository root. |
+| Automated tests | 81 tests, as of 2026-11-22 | `python3 -m unittest discover -s blocks/b-reel-premium/test`, from the repository root. |
 | Run on which operating systems | macOS (Apple silicon) only; Linux and Windows not run | Python 3.15.2, Node 25.9.0, ffmpeg 8.1 on one Apple-silicon Mac. |
 | Run with a real provider account | no provider | No network, no key. |
 | Used in a real start-to-finish recipe run | yes, in recipe template runs with stand-in media on macOS, 2026-11-22 | Part of the reel recipe template runs. The media was generated, not a real reel. |

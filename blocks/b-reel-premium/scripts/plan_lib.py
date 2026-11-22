@@ -302,6 +302,34 @@ def probe_duration(path):
     return d
 
 
+def probe_video_timing(path, what="--reel"):
+    """The reel's own picture timing: {"fps": "30/1", "frames": int, "seconds": float}.
+
+    The frame count is the number of video packets (one per frame); the rate is the stream's average rate,
+    or 30 when it cannot be read or is outside 1 to 120. The output is made to match these exactly.
+    """
+    out = subprocess.run(
+        ["ffprobe", "-v", "error", "-protocol_whitelist", "file", "-select_streams", "v:0", "-count_packets", "-show_entries",
+         "stream=avg_frame_rate,r_frame_rate,nb_read_packets", "-of", "json", "-i", path],
+        capture_output=True, text=True, check=False,
+    )
+    try:
+        st = (json.loads(out.stdout).get("streams") or [{}])[0]
+        frames = int(st.get("nb_read_packets"))
+    except (ValueError, TypeError):
+        raise PlanError(["%s has no countable video frames" % what])
+    if frames < 1:
+        raise PlanError(["%s has no countable video frames" % what])
+    fps = "30/1"
+    for key in ("avg_frame_rate", "r_frame_rate"):
+        m = re.fullmatch(r"(\d{1,6})/(\d{1,6})", str(st.get(key, "")))
+        if m and int(m.group(2)) > 0 and 1 <= int(m.group(1)) / int(m.group(2)) <= 120:
+            fps = "%d/%d" % (int(m.group(1)), int(m.group(2)))
+            break
+    num, den = (int(x) for x in fps.split("/"))
+    return {"fps": fps, "frames": frames, "seconds": frames * den / num}
+
+
 MUSIC_FORMATS = ("wav", "mp3", "aac", "flac", "ogg", "mp4")
 
 

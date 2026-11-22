@@ -10,7 +10,7 @@ footage is not re-rendered, so on a reel with no grade the only change is the ca
 With a grade, the colour is meant to change and this check is skipped. The grade and whether the check ran
 are recorded in .gate/premium.json.
 
-Checks: the output decodes cleanly, its length equals the input's within one frame at 30 fps, and it has
+Checks: the output decodes cleanly, it has exactly the input's picture frame count and frame rate, and it has
 video and audio. Saves four frames (at 10, 35, 60 and 85 percent) as PNG files in --frames-dir for a
 person or a vision step to look at. Only after all checks pass does it write .gate/premium.json beside the
 output, recording what was applied. The stamp does not replace looking at the frames.
@@ -81,8 +81,10 @@ def main(argv):
         if os.path.exists(frames) and not os.path.isdir(frames):
             raise pl.PlanError(["--frames-dir exists and is not a folder"])
         d_in, d_out = pl.probe_duration(rin), pl.probe_duration(rout)
-        if abs(d_in - d_out) > FRAME + 0.001:
-            probs.append("length changed: input %.3f s, output %.3f s (the pass must not trim or extend)" % (d_in, d_out))
+        t_in, t_out = pl.probe_video_timing(rin, "--reel-in"), pl.probe_video_timing(rout, "--reel-out")
+        if t_in["frames"] != t_out["frames"] or t_in["fps"] != t_out["fps"]:
+            probs.append("length changed: input %d frames at %s (%.3f s), output %d frames at %s (%.3f s) (the pass must not trim or extend)"
+                         % (t_in["frames"], t_in["fps"], t_in["seconds"], t_out["frames"], t_out["fps"], t_out["seconds"]))
         if not pl.has_audio(rout):
             probs.append("the output has no audio stream")
         dec = subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-protocol_whitelist", "file", "-i", rout, "-f", "null", "-"],
