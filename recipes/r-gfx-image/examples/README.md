@@ -1,0 +1,2 @@
+Sample run with a made-up brand ("Example Plants") and the topic "How to water a houseplant without drowning it": two square 1080x1080 cards (a numbered-steps card and a before and after card), made by following the steps with Playwright 1.64.1. No paid account was used.
+Fonts load from Google Fonts at render time (Poppins, SIL Open Font License). The vision pass was done by the agent that built the sample, not by a recorded run on a brand bot.
