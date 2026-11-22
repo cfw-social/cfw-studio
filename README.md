@@ -19,9 +19,11 @@ This repo holds **templates**: recipes, blocks and effects. A template teaches. 
                                                                     the saved recipe is what runs
 ```
 
+**This is the planned flow. The CFW-side tools for it are not built yet.** Today, templates here only teach.
+
 - A brand's own bot reads a template, builds its own recipe, and tries it.
-- The bot saves the recipe in that brand's recipe library inside [CFW Social](https://app.cfw.social). It edits it alone. When the user likes a version, the bot locks it in and the other drafts go.
-- Posts are tagged with the brand recipe and the template it came from.
+- Planned: the bot saves the recipe in that brand's recipe library inside [CFW Social](https://app.cfw.social). It edits it alone. When the user likes a version, the bot locks it in and the other drafts go.
+- Planned: posts are tagged with the brand recipe and the template it came from.
 - Contributors open pull requests. The owner vets each one against an eight-point checklist (see [CONTRIBUTING.md](CONTRIBUTING.md)) and is the only one who merges. Bots and agents open pull requests and issues only.
 - Merging here does not change what runs for any brand. There is no sync into CFW.
 
@@ -35,7 +37,7 @@ The names "templates", "recipe library" and "built-in recipes" are proposed and 
 
 - The CFW tools for a brand's recipe library: check, save, lock in, remove
 - Post tags for the brand recipe and its template
-- The `block.yaml` and `recipe.yaml` format. Recipes ship whole first, in today's file format. The existing templates here are in the later format.
+- The `block.yaml` and `recipe.yaml` format. Recipes ship whole first, in today's file format. The `_template` folders show the later format.
 - Existing recipes moved in as templates
 
 A folder in this repo is a template. It is not, by itself, something that runs in CFW.

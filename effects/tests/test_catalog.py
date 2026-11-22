@@ -79,7 +79,7 @@ def test_effects_library_license_marker():
     assert 'license = "MIT"' in pyproject
     assert (EFFECTS / "LICENSE").is_file()
     readme = (EFFECTS / "README.md").read_text()
-    assert "MIT" in readme
+    assert "MIT License" in readme
 
 
 def test_no_private_brand_media_links():

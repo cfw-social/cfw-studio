@@ -22,9 +22,11 @@ Each brand's own bot reads a template here, builds its own recipe, tries it, and
  issue  |        v                                       | bot saves, edits,
  report |  +------------------------------+              | locks in, removes
         +--| THE BRAND'S BOT              |--------------+
-           | follows the install guide    |
+           | follows CFW's bot guide      |
            +------------------------------+
 ```
+
+The bot follows CFW Social's bot guide. The Studio section of that guide is planned, not written yet.
 
 CFW also keeps **built-in recipes**: the ones CFW makes. A bot may start from one, too.
 
@@ -37,7 +39,7 @@ CFW also keeps **built-in recipes**: the ones CFW makes. A bot may start from on
 | Brand recipe library in CFW | Planned, not built |
 | Tools to check, save, lock in and remove a recipe | Planned, not built |
 | Tags on posts: brand recipe and template | Planned, not built |
-| `block.yaml` and `recipe.yaml` format | Later. The templates here already use it. |
+| `block.yaml` and `recipe.yaml` format | Later. The `_template` folders show it. Real recipes are copied in whole, in today's file format, first. |
 
 There is **no sync** from this repo into CFW. Merging here does not make anything live for any brand.
 
@@ -81,7 +83,7 @@ Brand facts stay out of templates. Voice, colors and names live in Brand DNA and
 
 ## File format
 
-Recipes ship **whole first, in today's file format**. The `block.yaml` and `recipe.yaml` format below comes later. The templates in this repo are in the later format, so treat them as a preview.
+Recipes ship **whole first, in today's file format**. The `block.yaml` and `recipe.yaml` format below comes later. The `_template` folders show the later format as a preview. Real recipes are copied in whole, in today's file format, first.
 
 ## Building blocks (later format)
 

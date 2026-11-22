@@ -4,8 +4,7 @@
 
 ## What today looks like
 
-Published recipes are stored in Postgres as immutable, content-hashed bundles (`recipe_library_*` tables). Getting a new recipe into the product takes an admin through several steps: author files in the harness source, package a bundle, publish it with `publish.mjs` and the account master key, add it to the vendored manifest in application code, and get it on the catalog and Marketplace lists. A brand's bot can run, adapt and save a published recipe. It cannot create a new one that stays.
-
+Published recipes are stored in Postgres as immutable, content-hashed bundles (`recipe_library_*` tables). Getting a new recipe into the product takes an admin through several steps: author files in the harness source, package a bundle, publish it with `publish.mjs` and the account master key, add it to the vendored manifest in application code, and get it on the catalog and Marketplace lists.
 ## Where it is going
 
 ```text
