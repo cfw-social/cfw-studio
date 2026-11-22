@@ -31,6 +31,4 @@ Bots are welcome to open pull requests when they find a reusable piece, invent a
 
 ## License
 
-Contributions are under the repository's GPL-3.0 license unless a later decision says otherwise.
-
-The effects library already in `effects/` (`fx/`, `presets/`, `examples/`, `tests/test_smoke.py`, `scripts/download_models.sh`, and the synthetic media and preview stills that shipped with it) is GPL-3.0-or-later. See [effects/README.md](effects/README.md#license). Changes to those paths stay on that grant. New and edited `e-*` catalog entries follow the repository GPL-3.0, same as blocks and recipes. The two grants are compatible and are distributed together as an aggregate.
+By opening a pull request you agree that your contribution is under the MIT License in [LICENSE](LICENSE). This applies to everything in the repository, including `effects/`.

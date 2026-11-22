@@ -52,8 +52,4 @@ A folder in this repo is not, by itself, something already runnable in CFW. Do n
 
 ## License
 
-CFW Studio (this README, the design docs, `blocks/`, `recipes/`, `effects/_template/`, and the `e-*` catalog entries) is licensed under the GNU General Public License v3.0. See [LICENSE](LICENSE).
-
-The subject-aware effects library inside `effects/` (the `fx` package, presets, examples, smoke tests, model download script, synthetic media, and the two preview stills) is licensed under **GPL-3.0-or-later**. The license text is [effects/LICENSE](effects/LICENSE). How the two grants sit in one repository is explained in [effects/README.md](effects/README.md#license).
-
-Confirm that GPL-3.0 remains the intended license for contributed blocks and recipes before adding substantial new work outside that effects library.
+MIT. Copyright (c) 2026 CFW Social. See [LICENSE](LICENSE). The same terms cover the `effects/` library ([effects/LICENSE](effects/LICENSE)).

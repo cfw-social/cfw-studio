@@ -1,5 +1,5 @@
-# Catalog entry for CFW Studio (repository GPL-3.0).
-# Implementation: fx effect "colour_collage" in the effects library (GPL-3.0-or-later).
+# Catalog entry for CFW Studio (MIT).
+# Implementation: fx effect "colour_collage" in the effects library (MIT).
 # See ../README.md (License).
 id: e-colour-collage
 kind: effect

@@ -4,7 +4,7 @@ A timer behind the subject: flip-clock tiles that flip each tick, or big outline
 
 This folder is the CFW Studio catalog entry (`kind: effect`, variation `default`). The implementation is the shared `fx` package, effect `countdown_behind`, in [`../fx/effects/countdown_behind.py`](../fx/effects/countdown_behind.py). Run commands from `effects/` so `python -m fx` imports that package.
 
-The `fx` package is GPL-3.0-or-later. This catalog entry follows the repository GPL-3.0. See [the effects license note](../README.md#license).
+The `fx` package and this catalog entry are MIT licensed. See [the effects license note](../README.md#license).
 
 ## When to use
 

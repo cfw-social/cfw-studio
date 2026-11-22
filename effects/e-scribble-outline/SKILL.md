@@ -4,7 +4,7 @@ A hand-drawn contour that boils around the subject, draws on, and can use a seco
 
 This folder is the CFW Studio catalog entry (`kind: effect`, variation `default`). The implementation is the shared `fx` package, effect `scribble_outline`, in [`../fx/effects/scribble_outline.py`](../fx/effects/scribble_outline.py). Run commands from `effects/` so `python -m fx` imports that package.
 
-The `fx` package is GPL-3.0-or-later. This catalog entry follows the repository GPL-3.0. See [the effects license note](../README.md#license).
+The `fx` package and this catalog entry are MIT licensed. See [the effects license note](../README.md#license).
 
 ## When to use
 
