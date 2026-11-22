@@ -30,6 +30,8 @@ ASPECT_RATIOS = ("16:9", "9:16", "4:5", "5:4", "1:1", "auto")
 ID_RE = re.compile(r"[A-Za-z0-9_-]{1,128}")  # always used with fullmatch
 COLOR_RE = re.compile(r"#[0-9A-Fa-f]{6}")
 KEY_RE = re.compile(r"[\x21-\x7e]{8,512}")
+ALNUM_RE = re.compile("[^A-Za-z0-9]+")
+WITHHELD = "(server message withheld: it contained the API key)"
 CONTROL_RE = re.compile("[\x00-\x1f\x7f\x85\u2028\u2029]")
 LABEL_RE = re.compile(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?")
 LOCAL_HOSTS = ("127.0.0.1", "localhost")
@@ -45,6 +47,10 @@ def safe_text(value, limit=300):
         squeezed = "".join(c for c in text if unicodedata.category(c) not in ("Cc", "Cf", "Zl", "Zp"))
         if SECRET[0] in squeezed:
             text = squeezed.replace(SECRET[0], "[redacted]")
+        # a key with anything else put inside it (spaces, hyphens, dots ...): compare letters and digits only
+        wanted = ALNUM_RE.sub("", SECRET[0])
+        if len(wanted) >= 8 and wanted in ALNUM_RE.sub("", text):
+            return WITHHELD
     return CONTROL_RE.sub(" ", text)[:limit]
 
 

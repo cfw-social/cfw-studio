@@ -81,7 +81,7 @@ A short summary of the limits below. Where this README does not say, it reads "n
 
 | What | Status | Detail |
 |---|---|---|
-| Automated tests | 31 tests, as of 2026-11-22 | `python3 -m unittest discover -s blocks/b-heygen/test`, from the repository root. They run against a local fake server. |
+| Automated tests | 32 tests, as of 2026-11-22 | `python3 -m unittest discover -s blocks/b-heygen/test`, from the repository root. They run against a local fake server. |
 | Run on which operating systems | macOS (Apple silicon) only; Linux and Windows not run | Python 3.15.2, Node 25.9.0, ffmpeg 8.1 on one Apple-silicon Mac. |
 | Run with a real provider account | not run with a real account | Nothing here has run against the live provider. |
 | Used in a real start-to-finish recipe run | only against a local fake server | Only the local fake server; no real HeyGen call has been made. |
@@ -110,5 +110,5 @@ The request and response shapes follow HeyGen's public v3 pages, read on 2026-11
 - The `video_url` is presigned and short-lived. Download soon after completion.
 - The block does not check that a resolution is allowed for an aspect ratio. A combination the provider refuses comes back as a provider error.
 - Not tested on Windows.
-- The key is removed from server text in its plain form only. If a server echoed the key in another encoding (for example base64), that form would not be recognised and would be printed.
+- The key is removed from server text. If a server echoes it with spaces, dots, hyphens or control characters put inside it, the whole message is withheld and a fixed line is printed instead. An encoded form of the key (for example base64) is not recognised and would be printed.
 - Host checks look at the written address only. Number forms, `localhost`, IPv6 literals and private ranges are refused, but a public name that resolves to a private address is not caught. This affects only the video download, which carries no key.
