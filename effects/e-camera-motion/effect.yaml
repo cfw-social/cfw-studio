@@ -1,0 +1,38 @@
+# Catalog entry for CFW Studio (MIT).
+# A standalone effect: it does not use the shared fx package. One ffmpeg command, see scripts/camera_motion.py.
+id: e-camera-motion
+kind: effect
+variation: default
+engine: standalone
+label: "Camera motion"
+summary: "One-command camera moves on a clip with ffmpeg: push in, pull out, pans, slow drift, tilt, orbit, sway, or a floating card."
+
+inputs:
+  - id: clip
+    type: video
+    required: true
+    cardinality: one
+    description: The clip to move, inside the work folder. Any size, aspect ratio and frame rate. Audio is kept.
+  - id: motion
+    type: text
+    required: true
+    cardinality: one
+    description: A motion name from the table in SKILL.md (default push-in).
+  - id: options
+    type: json
+    required: false
+    cardinality: one
+    description: Optional numbers and colours (amount, intensity, drift, canvas, background, card scale, corner radius, crf, preset). Each is range-checked. See README.md.
+
+outputs:
+  - id: treated_clip
+    type: video
+    cardinality: one
+    description: The clip with the camera move applied, written to --out inside the work folder. H.264 .mp4 by default.
+
+needs:
+  tools:
+    - python3
+    - ffmpeg
+    - ffprobe
+  providers: []
