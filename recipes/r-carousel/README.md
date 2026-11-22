@@ -6,7 +6,7 @@ Based on CFW Social's built-in carousel recipe.
 
 A branded image carousel: ordered slide PNGs (3, 5, 7 or 10) at 1080x1350 (portrait) or 1080x1080 (square), plus one caption for each target platform.
 
-This is a template to learn from and adapt. The plan is that a brand's bot reads it, builds its own recipe, and saves that recipe in the brand's recipe library in CFW Social, which then runs it. The CFW tools for saving a recipe are live, for a key made with the "Save its own recipes" permission (see [../../docs/DESIGN.md](../../docs/DESIGN.md)). You can also read the steps and follow them by hand or with your own agent.
+This is a template to learn from and adapt. A brand's bot reads it, builds its own recipe, and saves that recipe in the brand's recipe library in CFW Social. The bot then runs its saved recipe. The CFW tools for saving a recipe are live, for a key made with the "Save its own recipes" permission (see [../../docs/DESIGN.md](../../docs/DESIGN.md)). You can also read the steps and follow them by hand or with your own agent.
 
 ## What you need
 

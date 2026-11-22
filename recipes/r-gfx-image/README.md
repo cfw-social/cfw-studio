@@ -6,7 +6,7 @@ Based on CFW Social's built-in graphic image recipe.
 
 A template for brand-styled explainer images. It makes one to four static PNG cards from a topic: a numbered list, a big stat, a quote, a before and after, a small diagram, or a wide banner. Sizes: 1080x1080 (square, default), 1080x1920 (portrait) or 1920x1080 (banner). Not a video, not an AI-painted picture, not a multi-slide carousel.
 
-This is a template to learn from and adapt. The plan is that a brand's bot reads it, builds its own recipe, and saves that recipe in the brand's recipe library in CFW Social, which then runs it. The CFW tools for saving a recipe are live, for a key made with the "Save its own recipes" permission (see [../../docs/DESIGN.md](../../docs/DESIGN.md)). You can also read the steps and follow them by hand or with your own agent.
+This is a template to learn from and adapt. A brand's bot reads it, builds its own recipe, and saves that recipe in the brand's recipe library in CFW Social. The bot then runs its saved recipe. The CFW tools for saving a recipe are live, for a key made with the "Save its own recipes" permission (see [../../docs/DESIGN.md](../../docs/DESIGN.md)). You can also read the steps and follow them by hand or with your own agent.
 
 ## What you need
 
