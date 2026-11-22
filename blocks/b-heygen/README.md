@@ -110,5 +110,5 @@ The request and response shapes follow HeyGen's public v3 pages, read on 2026-11
 - The `video_url` is presigned and short-lived. Download soon after completion.
 - The block does not check that a resolution is allowed for an aspect ratio. A combination the provider refuses comes back as a provider error.
 - Not tested on Windows.
-- The key is removed from server text. If a server echoes it with spaces, dots, hyphens or control characters put inside it, the whole message is withheld and a fixed line is printed instead. An encoded form of the key (for example base64) is not recognised and would be printed.
+- The key is removed from server text. If a server echoes it with spaces, dots, hyphens or control characters put inside it, in any letter case, the whole message is withheld and a fixed line is printed instead. An encoded form of the key (for example base64) is not recognised and would be printed.
 - Host checks look at the written address only. Number forms, `localhost`, IPv6 literals and private ranges are refused, but a public name that resolves to a private address is not caught. This affects only the video download, which carries no key.

@@ -315,16 +315,18 @@ class RenderTests(unittest.TestCase):
     def test_key_split_by_separators_is_withheld_and_a_normal_message_prints(self):
         for ch in (" ", "\u00a0", "\u3000", "\u200b", "\u00ad", "\ufeff", "-", ".", "\n"):
             for i in range(1, len(KEY)):
-                with self.subTest(ch=repr(ch), at=i):
+              for case in (str.lower, str.upper, str.title):
+                with self.subTest(ch=repr(ch), at=i, case=case.__name__):
                     Fake.mode = "failed"
-                    Fake.message = "bad " + (KEY[:i] + ch + KEY[i:]).replace("%", "%%") + " end%.0s"
+                    Fake.message = "bad " + case(KEY[:i] + ch + KEY[i:]).replace("%", "%%") + " end%.0s"
                     r = self.run_cli()
                     self.assertEqual(r.returncode, 1)
                     seen = r.stdout + r.stderr
                     for p in self.work.rglob("*"):
                         if p.is_file():
                             seen += p.read_bytes().decode("latin-1")
-                    self.assertEqual([KEY[j:j + 6] for j in range(len(KEY) - 5) if KEY[j:j + 6] in seen], [])
+                    low = seen.lower()
+                    self.assertEqual([KEY[j:j + 6] for j in range(len(KEY) - 5) if KEY[j:j + 6].lower() in low], [])
         Fake.mode = "failed"
         Fake.message = "the avatar was not found%.0s"
         r = self.run_cli()

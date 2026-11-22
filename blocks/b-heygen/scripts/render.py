@@ -48,8 +48,8 @@ def safe_text(value, limit=300):
         if SECRET[0] in squeezed:
             text = squeezed.replace(SECRET[0], "[redacted]")
         # a key with anything else put inside it (spaces, hyphens, dots ...): compare letters and digits only
-        wanted = ALNUM_RE.sub("", SECRET[0])
-        if len(wanted) >= 8 and wanted in ALNUM_RE.sub("", text):
+        wanted = ALNUM_RE.sub("", SECRET[0]).lower()
+        if len(wanted) >= 8 and wanted in ALNUM_RE.sub("", text).lower():
             return WITHHELD
     return CONTROL_RE.sub(" ", text)[:limit]
 
