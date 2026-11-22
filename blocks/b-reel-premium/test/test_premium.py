@@ -877,6 +877,87 @@ class Mix(WorkDir):
         q = run("qa.py", ["--reel-in", "reel.mp4", "--reel-out", "out/polished.mp4", "--frames-dir", "out/qa", "--grade", "off"], self.work)
         self.assertEqual(q.returncode, 0, q.stderr)
 
+    W, H = 160, 284
+
+    def make_moving_reel(self, name="reel.mp4", fps="30", seconds=3, audio_extra=0.1, pix_fmt="yuv420p", extra=()):
+        """A moving test picture (every frame differs from its neighbours) whose sound runs a little longer than the picture,
+        as a real reel does after loudness normalising."""
+        subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-f", "lavfi", "-i", "testsrc2=s=%dx%d:r=%s:d=%s" % (self.W, self.H, fps, seconds),
+                        "-f", "lavfi", "-i", "sine=frequency=330:sample_rate=48000:d=%s" % (seconds + audio_extra), "-c:v", "libx264", "-pix_fmt", pix_fmt,
+                        "-c:a", "aac"] + list(extra) + [self.path(name)], check=True)
+
+    def yuv_frames(self, name):
+        raw = subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-i", self.path(name), "-pix_fmt", "yuv420p", "-f", "rawvideo", "-"],
+                             capture_output=True, check=True).stdout
+        size = self.W * self.H * 3 // 2
+        return [raw[i * size:(i + 1) * size] for i in range(len(raw) // size)]
+
+    def picture_difference(self, a, b, skip_box=None):
+        """Largest mean absolute difference, over all frames compared index by index, of the Y plane (skipping a box)."""
+        worst = 0.0
+        for fa, fb in zip(self.yuv_frames(a), self.yuv_frames(b)):
+            total = n = 0
+            for y in range(self.H):
+                for x in range(0, self.W, 2):
+                    if skip_box and skip_box[0] <= x <= skip_box[2] and skip_box[1] <= y <= skip_box[3]:
+                        continue
+                    total += abs(fa[y * self.W + x] - fb[y * self.W + x])
+                    n += 1
+            worst = max(worst, total / n)
+        return worst
+
+    def test_no_captions_grade_off_leaves_a_moving_picture_unchanged_at_every_rate(self):
+        for fps in ("24", "25", "30", "60"):
+            with self.subTest(fps=fps):
+                self.make_moving_reel(fps=fps)
+                self.write_plan(good_plan(grade="off"))
+                r = run("mux.py", ["--reel", "reel.mp4", "--no-captions", "--plan", "plan.json", "--out", "out/polished.mp4"], self.work)
+                self.assertEqual(r.returncode, 0, r.stderr)
+                self.assertEqual(self.stream_frames("out/polished.mp4"), self.stream_frames("reel.mp4"))
+                got, want = self.yuv_frames("out/polished.mp4"), self.yuv_frames("reel.mp4")
+                self.assertEqual(len(got), len(want))
+                self.assertLess(self.picture_difference("out/polished.mp4", "reel.mp4"), 1.5, "frame for frame (a one-frame offset on this picture is about 5)")
+                q = run("qa.py", ["--reel-in", "reel.mp4", "--reel-out", "out/polished.mp4", "--frames-dir", "out/qa", "--grade", "off", "--captions", "off"], self.work)
+                self.assertEqual(q.returncode, 0, q.stderr)
+
+    def test_qa_compares_the_same_frame_when_the_sound_is_longer_than_the_picture(self):
+        # the reel's sound is 0.1 s longer than its picture; 60 percent of the two lengths used to name different frames
+        self.make_moving_reel(seconds=6, audio_extra=0.1)
+        self.write_plan(good_plan(grade="off", sfx=[]))
+        r = run("mux.py", ["--reel", "reel.mp4", "--no-captions", "--plan", "plan.json", "--out", "out/polished.mp4"], self.work)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        q = run("qa.py", ["--reel-in", "reel.mp4", "--reel-out", "out/polished.mp4", "--frames-dir", "out/qa", "--grade", "off"], self.work)
+        self.assertEqual(q.returncode, 0, q.stderr)
+        # and a picture that really is shifted by two frames is still caught
+        subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-i", self.path("reel.mp4"), "-vf", "setpts=PTS+0/TB,tpad=start=2:color=black,trim=end_frame=180,setpts=N/FRAME_RATE/TB",
+                        "-c:v", "libx264", "-pix_fmt", "yuv420p", "-an", self.path("late.mp4")], check=True)
+        mixed = run("qa.py", ["--reel-in", "reel.mp4", "--reel-out", "late.mp4", "--frames-dir", "out/qa2", "--grade", "off", "--max-shift", "0.2"], self.work)
+        self.assertEqual(mixed.returncode, 1)
+
+    def test_captions_on_grade_off_leaves_the_footage_outside_the_captions_unchanged(self):
+        for fps in ("25", "30"):
+            with self.subTest(fps=fps):
+                self.make_moving_reel(fps=fps)
+                box = (40, 100, 120, 160)
+                self.make_overlay("captions.mov", seconds=3, box=box)
+                self.write_plan(good_plan(grade="off", sfx=[]))
+                r = run("mux.py", ["--reel", "reel.mp4", "--captions-mov", "captions.mov", "--plan", "plan.json", "--out", "out/polished.mp4"], self.work)
+                self.assertEqual(r.returncode, 0, r.stderr)
+                self.assertEqual(self.stream_frames("out/polished.mp4"), self.stream_frames("reel.mp4"))
+                self.assertLess(self.picture_difference("out/polished.mp4", "reel.mp4", skip_box=(box[0] - 4, box[1] - 4, box[2] + 4, box[3] + 4)), 1.5)
+
+    def test_other_pixel_formats_stay_within_the_colour_tolerance(self):
+        # 4:2:2, 4:4:4 and full-range (yuvj) reels are converted to the output's 4:2:0; the shift stays inside qa's limit
+        for pix, extra in (("yuv422p", []), ("yuv444p", []), ("yuvj420p", []), ("yuvj444p", [])):
+            with self.subTest(pix_fmt=pix):
+                self.make_moving_reel(pix_fmt=pix, extra=extra)
+                self.write_plan(good_plan(grade="off", sfx=[]))
+                r = run("mux.py", ["--reel", "reel.mp4", "--no-captions", "--plan", "plan.json", "--out", "out/polished.mp4"], self.work)
+                self.assertEqual(r.returncode, 0, r.stderr)
+                self.assertEqual(self.stream_frames("out/polished.mp4"), self.stream_frames("reel.mp4"))
+                q = run("qa.py", ["--reel-in", "reel.mp4", "--reel-out", "out/polished.mp4", "--frames-dir", "out/qa", "--grade", "off", "--captions", "off"], self.work)
+                self.assertEqual(q.returncode, 0, "%s: %s" % (pix, q.stderr))
+
     def test_qa_colour_check_catches_an_unplanned_grade(self):
         self.make_reel(silent=False)
         self.assertEqual(self.mux(good_plan(grade="warm-amber", sfx=[])).returncode, 0)

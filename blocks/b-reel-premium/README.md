@@ -138,7 +138,7 @@ No captions: run `check_plan.py --captions off`, skip `build_comp.py` and the re
   (30 fps when the reel's rate cannot be read). A caption render that is longer or shorter, sound effects or music
   that run past the end, and audio a few milliseconds longer or shorter than the picture never lengthen or
   shorten it. The sound is cut or padded with silence to the picture's length.
-- **Check.** `qa.py` confirms the output decodes, has exactly the reel's frame count and frame rate, and has
+- **Check.** `qa.py` confirms the output decodes, has exactly the reel's frame count and frame rate (it compares the same frame number in both files, never the same percentage of two lengths), and has
   video and audio, then saves four frames and writes the stamp. With `--grade off` it also compares the average
   colour of the reel and the output (see Colour). A person or a vision step must still look at the frames:
   captions readable, accent on the emphasis words, nothing covering a face or card, grade subtle, effects
@@ -224,7 +224,7 @@ A short summary of the limits below. Where this README does not say, it reads "n
 
 | What | Status | Detail |
 |---|---|---|
-| Automated tests | 81 tests, as of 2026-11-22 | `python3 -m unittest discover -s blocks/b-reel-premium/test`, from the repository root. |
+| Automated tests | 85 tests, as of 2026-11-22 | `python3 -m unittest discover -s blocks/b-reel-premium/test`, from the repository root. |
 | Run on which operating systems | macOS (Apple silicon) only; Linux and Windows not run | Python 3.15.2, Node 25.9.0, ffmpeg 8.1 on one Apple-silicon Mac. |
 | Run with a real provider account | no provider | No network, no key. |
 | Used in a real start-to-finish recipe run | yes, in recipe template runs with stand-in media on macOS, 2026-11-22 | Part of the reel recipe template runs. The media was generated, not a real reel. |

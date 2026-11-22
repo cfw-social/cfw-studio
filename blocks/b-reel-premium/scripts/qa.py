@@ -46,10 +46,18 @@ def build_parser():
     return ap
 
 
+def frame_time(timing, pct):
+    """The middle of frame number floor(frames * pct / 100), in seconds. Frame counts and rates are equal in the two
+    files (checked first), so this one time names the same picture in both."""
+    num, den = (int(x) for x in timing["fps"].split("/"))
+    idx = min(timing["frames"] - 1, int(timing["frames"] * pct / 100.0))
+    return (idx + 0.5) * den / num
+
+
 def frame_means(path, t, size):
     """Average Y, U, V (0-255) of the frame at t seconds."""
     w, h = size
-    raw = subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-ss", "%.2f" % t, "-protocol_whitelist", "file", "-i", path,
+    raw = subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-ss", "%.4f" % t, "-protocol_whitelist", "file", "-i", path,
                           "-frames:v", "1", "-pix_fmt", "yuv420p", "-f", "rawvideo", "-"],
                          capture_output=True, check=False).stdout
     ny, nc = w * h, (w // 2) * (h // 2)
@@ -80,7 +88,6 @@ def main(argv):
             raise pl.PlanError(["an output file is also an input file"])
         if os.path.exists(frames) and not os.path.isdir(frames):
             raise pl.PlanError(["--frames-dir exists and is not a folder"])
-        d_in, d_out = pl.probe_duration(rin), pl.probe_duration(rout)
         t_in, t_out = pl.probe_video_timing(rin, "--reel-in"), pl.probe_video_timing(rout, "--reel-out")
         if t_in["frames"] != t_out["frames"] or t_in["fps"] != t_out["fps"]:
             probs.append("length changed: input %d frames at %s (%.3f s), output %d frames at %s (%.3f s) (the pass must not trim or extend)"
@@ -100,8 +107,9 @@ def main(argv):
                 probs.append("picture size changed: %s to %s" % (size_in, size_out))
             else:
                 for pct in (10, 35, 60, 85):
-                    a = frame_means(rin, d_in * pct / 100.0, size_in)
-                    b = frame_means(rout, d_out * pct / 100.0, size_in)
+                    t = frame_time(t_in, pct)   # the same frame number in both files, never the same percentage of two lengths
+                    a = frame_means(rin, t, size_in)
+                    b = frame_means(rout, t, size_in)
                     worst = max(abs(x - y) for x, y in zip(a, b))
                     if worst > args.max_shift:
                         probs.append("colour shifted by %.2f levels at %d percent (limit %s) with no grade in the plan"
@@ -109,7 +117,7 @@ def main(argv):
         if not probs:
             pl.ensure_dir(frames, root, "--frames-dir")
             for pct, png in zip((10, 35, 60, 85), pngs):
-                t = "%.2f" % (d_out * pct / 100.0)
+                t = "%.4f" % frame_time(t_in, pct)
                 tmp = pl.temp_output(png, root, ".png", "--frames-dir")
                 try:
                     r = subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-ss", t, "-protocol_whitelist", "file",
