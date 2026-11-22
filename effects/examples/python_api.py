@@ -4,7 +4,7 @@ import fx
 from fx.compose import f32, u8
 from fx.vio import read_frames, fit, Writer
 
-pal = fx.load_palette("vasanth-personal")      # or a path / dict
+pal = fx.load_palette("navy-amber")      # or a path / dict
 seg = fx.Segmenter("ensemble")
 frames = [fit(f, 1080, 1920) for f in read_frames("footage/clip.mp4", start=0, dur=3)]
 masks = seg.sequence(frames)
