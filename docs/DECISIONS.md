@@ -101,3 +101,4 @@ These replace parts of the earlier decisions. Source: the Studio design plan, re
 - Recipes ship whole first, in today's file format. The `block.yaml` and `recipe.yaml` format comes later. The existing templates stay as they are.
 - Bots and agents open pull requests and issues only. A bot that finds a template problem files an issue. See [REPORTING.md](REPORTING.md).
 - The names "templates", "recipe library" and "built-in recipes" are proposed and not yet confirmed by the owner.
+- Folder names, decided 2026-11-22: a recipe template is `r-*`, a building block is `b-*`, an effect is `e-*`. Earlier entries in this log that say `c-*` or `p-*` are kept as history.

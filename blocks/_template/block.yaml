@@ -1,5 +1,5 @@
 # Proposed template. This schema is not finalized, and CI does not validate it yet.
-id: c-your-block
+id: b-your-block
 kind: component  # component | step  (effects live in effects/ with kind: effect)
 variation: default
 label: Short name

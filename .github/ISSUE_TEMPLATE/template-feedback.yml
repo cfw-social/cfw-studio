@@ -1,0 +1,38 @@
+name: Template feedback
+description: You adapted a template and want to say what you had to change. Issues are public. Read docs/REPORTING.md first.
+labels: ["template-feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Issues are public. Do not include keys, brand facts, order text, file paths, or customer names. See docs/REPORTING.md.
+  - type: input
+    id: template
+    attributes:
+      label: Template name
+      description: The folder name, for example r-something, b-something or e-something.
+    validations:
+      required: true
+  - type: textarea
+    id: changed
+    attributes:
+      label: What you changed
+      description: Say what you changed from the template. Remove any file paths, keys, brand names, and order text first.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why you changed it
+    validations:
+      required: true
+  - type: dropdown
+    id: everyone
+    attributes:
+      label: Would this change help everyone?
+      options:
+        - "Yes"
+        - "No, it only fits one brand"
+        - "Not sure"
+    validations:
+      required: true

@@ -1,0 +1,3 @@
+# A block that fewer than two recipes call must be listed here, one line each:
+#   b-name: the reason
+# The rule is skipped while recipes/ holds no r-* folder.

@@ -34,7 +34,7 @@ CFW also keeps **built-in recipes**: the ones CFW makes. A bot may start from on
 
 | Piece | State |
 | --- | --- |
-| This repo, the `effects/` library, scaffolds | Exists |
+| This repo, eight building blocks, the `effects/` library, a scaffold for recipes | Exists. Recipe templates are added separately. A recipe refers to a block by the relative path `../../blocks/b-<name>/`. |
 | Issue form and pull request template | Exists (see `.github/`) |
 | Brand recipe library in CFW | Planned, not built |
 | Tools to check, save, lock in and remove a recipe | Planned, not built |
@@ -87,7 +87,7 @@ Recipes ship **whole first, in today's file format**. The `block.yaml` and `reci
 
 ## Building blocks (later format)
 
-A block lives in `blocks/c-<name>/` and contains:
+A block lives in `blocks/b-<name>/` and contains:
 
 - `block.yaml` — identity, kind, variation, and declared inputs and outputs
 - `SKILL.md` — the instructions an agent follows
@@ -97,7 +97,7 @@ A block lives in `blocks/c-<name>/` and contains:
 
 | Field | Role |
 | --- | --- |
-| `id` | Stable slug, for example `c-transcribe`. Blocks in `blocks/` use `c-*`. |
+| `id` | Stable slug, for example `b-transcribe`. Blocks in `blocks/` use `b-*`. |
 | `kind` | `component` or `step` for folders in `blocks/`. Effects use `kind: effect` and live under `effects/`. |
 | `variation` | Light variation id (for example `default` or `karaoke-glow`). Not semver. A new variation is a sibling, not a replacement, until the old one is retired. |
 | `label`, `summary` | Human-readable name and one-line description. |
@@ -120,7 +120,7 @@ Effects are blocks that recipes reference. They get their own folder so the libr
 
 ## Recipes (later format)
 
-A recipe lives in `recipes/p-<name>/` and contains:
+A recipe lives in `recipes/r-<name>/` and contains:
 
 - `recipe.yaml` — identity, the ordered list of blocks, the input union, and the final output
 - `SKILL.md` — the guiding document: when to use it, how the blocks fit, and any coordination the agent needs
@@ -129,24 +129,24 @@ A recipe lives in `recipes/p-<name>/` and contains:
 
 | Field | Role |
 | --- | --- |
-| `id` / `label` | Stable slug such as `p-reels-clipper`, plus a display name. |
+| `id` / `label` | Stable slug such as `r-reels-clipper`, plus a display name. |
 | `blocks[]` | Ordered list of block or effect ids and variation ids. This is the Lego list. Effects are included here; there is no separate effects array. |
 | `inputs` | Union of the required inputs of those blocks, plus any recipe-level optional settings. An agent can read this and know what to ask for. |
 | `output` | The final deliverable: kind, aspect, cardinality (`one` or `many`), and a short description. |
 
-## Example idea: p-reels-clipper
+## Example idea: r-reels-clipper
 
 A clipper template could take one long source video and produce a variable number of 15–60 second vertical shorts. That output shape is not expressible in today's fixed `finalOutputs` list, so the new contract needs a `many` cardinality. Do not copy AGPL third-party clipper code; write CFW blocks from the ideas.
 
 | Block | Role | Status |
 | --- | --- | --- |
-| `c-ingest-video` | Accept a long source video | Partial — today's reel inputs assume a short talking-head bed |
-| `c-transcribe` | Words and timestamps | Reusable from today's transcribe pattern |
-| `c-score-moments` | Score hook, engagement, value, and shareability; 3–9 word hook titles | **New block needed** |
-| `c-cut-on-sentences` | Cut 15–60 second clips on sentence boundaries | **New block needed** |
-| `c-reframe-9x16` | Vertical around faces, or full frame on a blurred bed when a tight crop would clip slides or people | **New block needed** |
-| `c-captions` | Karaoke-style captions | Partial — today's captions are not yet a reusable style-pack block |
-| `c-shorts-qa` | Duration, canvas, cover, captions QA | Reusable pattern for one reel, not yet for N clips |
+| `b-ingest-video` | Accept a long source video | Partial — today's reel inputs assume a short talking-head bed |
+| `b-transcribe` | Words and timestamps | Reusable from today's transcribe pattern |
+| `b-score-moments` | Score hook, engagement, value, and shareability; 3–9 word hook titles | **New block needed** |
+| `b-cut-on-sentences` | Cut 15–60 second clips on sentence boundaries | **New block needed** |
+| `b-reframe-9x16` | Vertical around faces, or full frame on a blurred bed when a tight crop would clip slides or people | **New block needed** |
+| `b-captions` | Karaoke-style captions | Partial — today's captions are not yet a reusable style-pack block |
+| `b-shorts-qa` | Duration, canvas, cover, captions QA | Reusable pattern for one reel, not yet for N clips |
 | Variable output | A list of shorts, not one deliverable | **New contract needed** |
 
 Proposed recipe inputs, as the union of those blocks: required `source_video`; optional `max_clips`, `mode` (`highlights`, `recap`, or `trailer`), and `caption_style`. Proposed output: many vertical videos, 1080×1920, 15–60 seconds each.
@@ -178,13 +178,13 @@ cfw-studio/
       block.yaml
       SKILL.md
       scripts/
-    c-*/                 # one folder per building block
+    b-*/                 # one folder per building block
   recipes/
     README.md
     _template/
       recipe.yaml
       SKILL.md
-    p-*/                 # one folder per recipe
+    r-*/                 # one folder per recipe
   .github/               # issue form and pull request template
   docs/REPORTING.md      # how a bot files an issue
 ```
