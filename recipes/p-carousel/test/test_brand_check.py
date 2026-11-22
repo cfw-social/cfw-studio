@@ -56,8 +56,8 @@ def carousel_html(accent, extra=""):
             '</style></head><body>%s</body></html>' % (accent, extra, sections))
 
 
-class AuthorSlidesBrandCheck(unittest.TestCase):
-    """AC1 for p-carousel: brand_vars_set as the step's self-check enforces it."""
+class CheckHarness(unittest.TestCase):
+    """Runs the step's own authoring check in a throwaway work folder. Has no tests itself."""
 
     def setUp(self):
         self.root = tempfile.mkdtemp(prefix="car02-")
@@ -84,6 +84,10 @@ class AuthorSlidesBrandCheck(unittest.TestCase):
         p = subprocess.run([sys.executable, "-c", self.block], cwd=wd, capture_output=True, text=True)
         return p, wd
 
+
+class AuthorSlidesBrandCheck(CheckHarness):
+    """AC1 for p-carousel: brand_vars_set as the step's self-check enforces it."""
+
     def test_blue_brand_accent_passes(self):
         p, wd = self.run_check({"bg": "#0F172A", "accent": STOCK_BLUE}, carousel_html(STOCK_BLUE))
         self.assertEqual(p.returncode, 0, p.stderr)
@@ -108,6 +112,51 @@ class AuthorSlidesBrandCheck(unittest.TestCase):
 
     def test_other_accent_clean_html_passes(self):
         p, _ = self.run_check({"accent": "#E11D48"}, carousel_html("#E11D48"))
+        self.assertEqual(p.returncode, 0, p.stderr)
+
+
+class AuthoringCheckRejectsActiveContent(CheckHarness):
+    """The authoring check refuses script, handlers, embeds and remote content."""
+
+    def refused(self, snippet, message):
+        html = carousel_html("#E11D48").replace("</body>", snippet + "</body>")
+        p, wd = self.run_check({"accent": "#E11D48"}, html)
+        self.assertNotEqual(p.returncode, 0, snippet)
+        self.assertIn(message, p.stderr)
+        self.assertFalse(os.path.exists(os.path.join(wd, "saves", "carousel_html.md")))
+
+    def test_script_tag_rejected(self):
+        self.refused("<script>fetch('x')</script>", "script tag")
+        self.refused("<SCRIPT src=//evil.example/x.js></SCRIPT>", "script tag")
+
+    def test_event_handler_rejected(self):
+        self.refused('<p onclick="x()">hi</p>', "event-handler")
+        self.refused("<img src=data:image/png;base64,AA== onerror=x()>", "event-handler")
+
+    def test_embeds_rejected(self):
+        for tag in ("<iframe src=a></iframe>", "<object data=a></object>", "<embed src=a>"):
+            self.refused(tag, "iframe, object, embed")
+
+    def test_remote_content_rejected(self):
+        self.refused('<link rel="stylesheet" href="https://evil.example/a.css">', "not a font host")
+        self.refused('<img src="https://evil.example/a.png">', "remote or file image")
+        self.refused("<style>@import 'https://evil.example/a.css';</style>", "@import")
+        self.refused("<style>.a{background:url(https://evil.example/a.png)}</style>", "url()")
+        self.refused('<a href="javascript:x()">t</a>', "javascript:")
+
+    def test_font_hosts_and_data_uris_allowed(self):
+        html = carousel_html("#E11D48").replace("<style>",
+            '<link href="https://fonts.googleapis.com/css2?family=Poppins" rel="stylesheet">'
+            '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><style>', 1)
+        html = html.replace("</body>", '<img src="data:image/png;base64,AA==">'
+                            "<p style=\"background:url(data:image/png;base64,AA==)\">one = 1 and on=x</p></body>")
+        p, _ = self.run_check({"accent": "#E11D48"}, html)
+        self.assertEqual(p.returncode, 0, p.stderr)
+
+    def test_shipped_template_passes_its_own_check(self):
+        # The template ships sections s1, s2 and s5 as samples; renumber to s1..s3.
+        tpl = read(os.path.join(SKILL_DIR, "template.html")).replace('id="s5"', 'id="s3"')
+        p, _ = self.run_check({"accent": "#F97316"}, tpl)
         self.assertEqual(p.returncode, 0, p.stderr)
 
 

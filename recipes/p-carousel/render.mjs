@@ -36,7 +36,20 @@ await mkdir('slides', { recursive: true });
 await mkdir(captureDir, { recursive: true });
 const browser = await chromium.launch();
 try {
-  const page = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT }, deviceScaleFactor: SCALE });
+  // The page holds order text, so treat it as untrusted: no script runs (the template has
+  // none) and only local files, inline data and the two declared font hosts may load.
+  const context = await browser.newContext({
+    viewport: { width: WIDTH, height: HEIGHT }, deviceScaleFactor: SCALE, javaScriptEnabled: false,
+  });
+  const FONT_HOSTS = new Set(['fonts.googleapis.com', 'fonts.gstatic.com']);
+  await context.route('**/*', (route) => {
+    const url = new URL(route.request().url());
+    const ok = url.protocol === 'file:' || url.protocol === 'data:' ||
+      (url.protocol === 'https:' && FONT_HOSTS.has(url.hostname));
+    if (!ok) console.error(`blocked request: ${url.protocol}//${url.hostname}`);
+    return ok ? route.continue() : route.abort();
+  });
+  const page = await context.newPage();
   await page.goto(pathToFileURL(htmlPath).href, { waitUntil: 'networkidle' });
   await page.evaluate(() => document.fonts.ready);
   const ids = await page.$$eval('section.slide[id]', els => els.map(e => e.id));

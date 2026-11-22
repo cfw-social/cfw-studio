@@ -1,8 +1,8 @@
 # Recipes
 
-Recipe **templates**. Each recipe is a `p-*` folder: a guiding document (`SKILL.md`) plus `recipe.yaml`, which lists the blocks and effects it uses, the union of their required inputs, and the final output.
+Recipe **templates**. Each recipe is a `p-*` folder. Recipes copied in today's format have a guiding document (`SKILL.md`), a `manifest.json` (inputs, steps, saves and checks) and a `steps/` folder. The later `recipe.yaml` format will list the blocks and effects a recipe uses, the union of their required inputs, and the final output.
 
-A template teaches. A brand's bot reads it, builds its own recipe, tries it, and saves it in that brand's recipe library in CFW. The saved recipe is what runs. The CFW tools for saving are planned, not built.
+A template teaches. A brand's bot reads it, builds its own recipe, tries it, and saves it in that brand's recipe library in CFW (planned). The saved recipe is what runs. The CFW tools for saving are planned, not built.
 
 Recipes ship whole first, in today's file format. The `recipe.yaml` shown in the scaffold is the later format.
 
