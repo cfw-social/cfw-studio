@@ -621,6 +621,10 @@ class TestKeyNeverPartlyShown(Base):
             self.assertEqual(r.returncode, 1, (i, r.stdout))
             self.assertEqual(self.leaked(self.all_output(r)), [], i)
 
+    def leaked_any_case(self, text):
+        low = text.lower()
+        return [LEAKKEY[i:i + 6] for i in range(len(LEAKKEY) - 5) if LEAKKEY[i:i + 6].lower() in low]
+
     SEPARATORS = (" ", "\u00a0", "\u3000", "\u200b", "\u00ad", "\ufeff", "-", ".", "\n")
 
     def test_key_split_by_separators_is_withheld(self):
@@ -633,8 +637,10 @@ class TestKeyNeverPartlyShown(Base):
         try:
             for ch in self.SEPARATORS:
                 for i in range(1, len(LEAKKEY)):
-                    out = generate.safe_text("pp " + LEAKKEY[:i] + ch + LEAKKEY[i:] + " qq", 300)
-                    self.assertEqual(self.leaked(out), [], (repr(ch), i))
+                    for case in (str, str.lower, str.upper, str.title):
+                        echoed = case(LEAKKEY[:i] + ch + LEAKKEY[i:])
+                        out = generate.safe_text("pp " + echoed + " qq", 300)
+                        self.assertEqual(self.leaked_any_case(out), [], (repr(ch), i, case.__name__))
             # every separator between every pair of letters at once
             out = generate.safe_text("x " + " . ".join(LEAKKEY) + " y", 300)
             self.assertEqual(self.leaked(out), [])
@@ -647,11 +653,12 @@ class TestKeyNeverPartlyShown(Base):
     def test_key_split_by_separators_never_reaches_output_or_files(self):
         for ch in ("\u3000", "-", "\n", " "):
             for i in (1, 7, 13, len(LEAKKEY) - 1):
-                s = self.fake("leak_msg")
-                s.leak_key = LEAKKEY[:i] + ch + LEAKKEY[i:]
-                r = self.run_script(self.BASE, s, env_key=LEAKKEY)
-                self.assertEqual(r.returncode, 1, (repr(ch), i, r.stdout))
-                self.assertEqual(self.leaked(self.all_output(r)), [], (repr(ch), i))
+                for case in (str.lower, str.upper, str.title):
+                    s = self.fake("leak_msg")
+                    s.leak_key = case(LEAKKEY[:i] + ch + LEAKKEY[i:])
+                    r = self.run_script(self.BASE, s, env_key=LEAKKEY)
+                    self.assertEqual(r.returncode, 1, (repr(ch), i, r.stdout))
+                    self.assertEqual(self.leaked_any_case(self.all_output(r)), [], (repr(ch), i, case.__name__))
 
     def test_all_server_text_goes_through_one_function(self):
         text = SCRIPT.read_text()

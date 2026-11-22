@@ -114,8 +114,8 @@ def safe_text(value, cap=300):
         if _KEY in squeezed:
             text = squeezed.replace(_KEY, "<key>")
         # a key with anything else put inside it (spaces, hyphens, dots ...): compare letters and digits only
-        wanted = _ALNUM.sub("", _KEY)
-        if len(wanted) >= 8 and wanted in _ALNUM.sub("", text):
+        wanted = _ALNUM.sub("", _KEY).lower()
+        if len(wanted) >= 8 and wanted in _ALNUM.sub("", text).lower():
             return WITHHELD
     text = re.sub(r"https?://\S+", "<url>", text)
     text = _CONTROL.sub(" ", text)
