@@ -4,7 +4,7 @@ A recipe **template** for a talking-head reel with a picture-in-picture speaker 
 avatar**. It is [`r-reels-pip`](../r-reels-pip/) with one difference: the person does not supply a video.
 Step 0 generates it from a script, an avatar id and a voice id with the `b-heygen` block, and steps 1 to 6
 are the same. A bot reads it, builds its own recipe from it, and tries it. It teaches; it does not run for
-any brand by itself. (Saving the result in a brand's recipe library in CFW Social is planned, not built.)
+any brand by itself. (A bot can save the result in a brand's recipe library in CFW Social, with a key made with the "Save its own recipes" permission.)
 
 Based on CFW Social's built-in HeyGen picture-in-picture reel recipe.
 

@@ -29,10 +29,10 @@ This repo holds **templates**: recipes, blocks and effects. A template teaches. 
                                                                     the saved recipe is what runs
 ```
 
-**This is the planned flow. The CFW-side tools for it are not built yet.** Today, templates here only teach.
+**The save and lock-in tools are live in CFW Social. Post tags are planned.** Templates here only teach. The saved recipe is what runs.
 
 - A brand's own bot reads a template, builds its own recipe, and tries it.
-- Planned: the bot saves the recipe in that brand's recipe library inside [CFW Social](https://app.cfw.social). It edits it alone. When the user likes a version, the bot locks it in and the other drafts go.
+- The bot saves the recipe in that brand's recipe library inside [CFW Social](https://app.cfw.social). The recipe name starts with `my-`. The bot uses six tools on its render connection: `list_my_recipes`, `check_recipe_save`, `upload_recipe_files`, `save_recipe_draft`, `lock_in_recipe` and `remove_recipe`. They work only for a key made with the "Save its own recipes" permission. It is off unless the person ticks it. A brand can hold 20 recipes and 10 open drafts per recipe. A try needs a saved draft. When the user likes a version, the bot locks it in and the other versions go.
 - Planned: posts are tagged with the brand recipe and the template it came from.
 - Contributors open pull requests. The owner vets each one against an eight-point checklist (see [CONTRIBUTING.md](CONTRIBUTING.md)) and is the only one who merges. Bots and agents open pull requests and issues only.
 - Merging here does not change what runs for any brand. There is no sync into CFW.
@@ -45,8 +45,9 @@ The names "templates", "recipe library" and "built-in recipes" are proposed and 
 
 **Planned, not built:**
 
-- The CFW tools for a brand's recipe library: check, save, lock in, remove
 - Post tags for the brand recipe and its template
+- A "Your recipes" page for the person in CFW Social
+- The CFW Studio page of the CFW bot guide. It is being written. It will be linked from the bot guide at `https://app.cfw.social/assets/bot-setup.md`.
 - The `block.yaml` and `recipe.yaml` format. Recipes ship whole first, in today's file format. The `_template` folders show the later format.
 - Existing recipes moved in as templates
 
@@ -56,7 +57,7 @@ A folder in this repo is a template. It is not, by itself, something that runs i
 
 1. **Now:** safe repo, docs, effects library, eight building blocks.
 2. **Next:** add the recipe templates under `recipes/`: move the recipes that run in CFW today into this repo as templates, one pull request each.
-3. **Then:** the brand recipe library and bot tools in CFW, and the bot guide.
+3. **Then:** the brand recipe library and the save tools are live in CFW Social. Still to come: post tags, a "Your recipes" page, and the CFW Studio page of the bot guide (being written).
 4. **Later:** the block and recipe file format.
 
 ## Get started

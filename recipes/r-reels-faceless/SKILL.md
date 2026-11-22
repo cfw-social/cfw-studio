@@ -17,8 +17,8 @@ dependsOn: [b-audio, b-broll-sync, b-typing-ui, b-reel-premium, b-hyperframes, b
 # Faceless reel
 
 This is a template. A brand's bot reads it, adapts it into its own recipe and runs that. The CFW Social
-tools for saving a brand's own recipes are planned, not built. Today you can follow the steps by hand or
-with your own agent. Read `README.md` for the tools, hosts and limits. Then read `steps/_shared.md` and the
+tools for saving a brand's own recipes are live, for a key made with the "Save its own recipes" permission.
+You can also follow the steps by hand or with your own agent. Read `README.md` for the tools, hosts and limits. Then read `steps/_shared.md` and the
 step file for the step you are on.
 
 ```text

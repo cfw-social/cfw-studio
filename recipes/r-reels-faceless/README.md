@@ -6,7 +6,7 @@ Based on CFW Social's built-in faceless reel recipe.
 
 A template for a narrated faceless reel. It makes one 9:16 video, 1080x1920 at 30 fps (H.264 with AAC 48 kHz stereo), 30 to 90 seconds long. The video has one brand voice, animated illustrative graphics for each beat, optional b-roll you supply, kinetic captions, sound effects and a branded closing card. It also makes a cover image, per-platform captions and a QA report.
 
-This is a template to learn from and adapt. The plan is that a brand's bot reads it, builds its own recipe, and saves that recipe in the brand's recipe library in CFW Social, which then runs it. Those CFW tools are planned, not built (see [../../docs/DESIGN.md](../../docs/DESIGN.md)). Today you can read the steps and follow them by hand or with your own agent.
+This is a template to learn from and adapt. The plan is that a brand's bot reads it, builds its own recipe, and saves that recipe in the brand's recipe library in CFW Social, which then runs it. The CFW tools for saving a recipe are live, for a key made with the "Save its own recipes" permission (see [../../docs/DESIGN.md](../../docs/DESIGN.md)). You can also read the steps and follow them by hand or with your own agent.
 
 ## What you need
 

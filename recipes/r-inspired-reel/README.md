@@ -6,7 +6,7 @@ Make an original reel inspired by the **format** of a reference reel.
 
 One 9:16 reel, 1080x1920 at 30 fps, 15 to 90 seconds long, about as long as the reference (within 15 percent). A narrated avatar speaks a brand-new script, with word-timed captions, a light colour grade and sound effects. The script, topic, voice and face are the brand's own. Only the reference's **shape** is taken: its length, words per minute, cut rate, how it opens, and the order and share of its beats (for example "hook, 3 points, call to action"). The reel uses none of the reference's footage and none of its audio, and no run of six or more words in a row comes from the reference (see "What the overlap check catches").
 
-This is a template to learn from and adapt. The plan is that a brand's bot reads it, builds its own recipe, and saves that recipe in the brand's recipe library in CFW Social. Those CFW tools are planned, not built (see [../../docs/DESIGN.md](../../docs/DESIGN.md)). Today you can read the steps and follow them by hand or with your own agent.
+This is a template to learn from and adapt. The plan is that a brand's bot reads it, builds its own recipe, and saves that recipe in the brand's recipe library in CFW Social. The CFW tools for saving a recipe are live, for a key made with the "Save its own recipes" permission (see [../../docs/DESIGN.md](../../docs/DESIGN.md)). You can also read the steps and follow them by hand or with your own agent.
 
 ## 2. What you need
 

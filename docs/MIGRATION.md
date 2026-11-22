@@ -1,6 +1,6 @@
 # Migration from today's system
 
-**Planned, not built.** This is the path from today's CFW recipe library to the Studio model in [DESIGN.md](DESIGN.md). It does not authorize any production change by itself. Every CFW-side step below needs its own approved work in the Social app.
+**Partly done.** Steps 3 and 4 below are live. The rest is planned. This is the path from today's CFW recipe library to the Studio model in [DESIGN.md](DESIGN.md). It does not authorize any production change by itself. Every CFW-side step below needs its own approved work in the Social app.
 
 ## What today looks like
 
@@ -27,9 +27,9 @@ Order matters. Each step is separate work with its own tests and the owner's app
 
 1. **Make this repo safe to read.** MIT license, these docs, the vetting checklist, issue and pull request forms. Protect `main` so nothing merges without the owner. (This step is what this change set does, apart from the branch protection.)
 2. **Move existing recipes in as templates.** Copy recipes and the blocks they use from the harness source, as they are, in today's file format. Recipes first, blocks later. Before any pull request: scan for keys, private paths and brand facts. One pull request per recipe, with a sample output. The owner vets each one.
-3. **Add brand recipe libraries in CFW.** Add brand scope to the library tables and make every reader take the caller's brand. Test that one brand cannot list, fetch, pin or claim another brand's recipe.
-4. **Give bots tools to save and lock in recipes.** A key scope for saves, a dry-run check, upload, lock-in, remove and list tools, with server checks on every save.
-5. **Update the bot guide and the app.** The guide teaches the loop: read a template at a named commit, build, try, lock in, reuse, report. A "Your recipes" page. Tags on posts.
+3. **Add brand recipe libraries in CFW (done).** Add brand scope to the library tables and make every reader take the caller's brand. Test that one brand cannot list, fetch, pin or claim another brand's recipe.
+4. **Give bots tools to save and lock in recipes (done).** A key scope for saves, a dry-run check, upload, lock-in, remove and list tools, with server checks on every save.
+5. **Update the bot guide and the app (not done yet).** The guide teaches the loop: read a template at a named commit, build, try, lock in, reuse, report. A "Your recipes" page. Tags on posts.
 6. **Retire what the library replaces.** The old skill tables and the register door, once nothing reads them. A table drop cannot be undone, so it needs a snapshot and the owner's approval.
 7. **Later: the block and recipe file format.** Move templates to `block.yaml` and `recipe.yaml`.
 
