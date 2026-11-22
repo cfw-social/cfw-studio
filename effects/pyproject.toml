@@ -7,7 +7,7 @@ name = "fx-effects"
 version = "0.1.0"
 description = "Subject-aware short-form video effects: person segmentation + layered compositing (24 effects: vertigo, paper cut, spotlight, backdrop words, glass card and more)."
 readme = "README.md"
-license = "GPL-3.0-or-later"
+license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
 dependencies = [

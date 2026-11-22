@@ -1,39 +1,36 @@
 # Migration from today's system
 
-**Proposed, not built.** This is the path from the current CFW recipe library to CFW Studio. It does not authorize any production change by itself.
+**Planned, not built.** This is the path from today's CFW recipe library to the Studio model in [DESIGN.md](DESIGN.md). It does not authorize any production change by itself. Every CFW-side step below needs its own approved work in the Social app.
 
 ## What today looks like
 
-Published recipes are already stored in Postgres as immutable, content-hashed bundles (`recipe_library_*` tables). A building block today is one recipe step, hashed and joined onto a `RecipeVersion`. Shared `c-*` components live in the canonical harness source and are copied into a bundle by the packager.
+Published recipes are stored in Postgres as immutable, content-hashed bundles (`recipe_library_*` tables). Getting a new recipe into the product takes an admin through several steps: author files in the harness source, package a bundle, publish it with `publish.mjs` and the account master key, add it to the vendored manifest in application code, and get it on the catalog and Marketplace lists.
+## Where it is going
 
-Getting a new recipe into the product takes several steps that this design wants to collapse:
+```text
+ TODAY                                  TARGET
+ admin publishes built-in recipes       built-in recipes stay (admin path)
+ bots cannot make lasting recipes       each brand's bot saves its own recipes
+                                        in the brand recipe library
+ no public place to learn from          CFW Studio: templates that teach
+```
 
-1. Author files in the canonical harness source.
-2. Package a scratch bundle.
-3. Publish an immutable library version with `publish.mjs` and the account master key.
-4. Snapshot a vendored manifest and add the recipe to the `VENDORED` map in application code, then deploy, so start-asks work.
-5. Insert a `skills` table row, because `list_recipes` and the automation picker do not read the library by themselves.
-6. After review, add a `PublicRecipeApproval` entry in `approvals.server.ts` and deploy, because the Marketplace allowlist lives in code, not in the database.
+- Built-in recipes stay as they are.
+- Each brand gets its own recipe library. A recipe there is private to the brand.
+- A brand's bot reads a template here, builds, tries, edits, and saves through CFW tools. The user says "I like it" and the bot locks the version in. The other drafts go.
+- Posts are tagged with the brand recipe and the template it came from.
+- No sync from this repo into CFW. No "merge goes live".
 
-Brand bots can only run, adapt, and save already published recipes. They cannot create or list a new one through the API.
+## Planned steps
 
-## What the target replaces
+Order matters. Each step is separate work with its own tests and the owner's approval.
 
-| Today's piece | Target replacement |
-| --- | --- |
-| `publish.mjs` plus the account master key | A merge to `cfw-studio`, then one authenticated sync endpoint |
-| `VENDORED` map and vendored manifest files | Start-asks read snapshot rows |
-| Marketplace allowlist in `approvals.server.ts` | A listed/approved flag on the recipe snapshot, set at merge |
-| Separate `skills` table as the owner-facing catalog | `list_recipes` and the Marketplace read snapshot rows |
+1. **Make this repo safe to read.** MIT license, these docs, the vetting checklist, issue and pull request forms. Protect `main` so nothing merges without the owner. (This step is what this change set does, apart from the branch protection.)
+2. **Move existing recipes in as templates.** Copy recipes and the blocks they use from the harness source, as they are, in today's file format. Recipes first, blocks later. Before any pull request: scan for keys, private paths and brand facts. One pull request per recipe, with a sample output. The owner vets each one.
+3. **Add brand recipe libraries in CFW.** Add brand scope to the library tables and make every reader take the caller's brand. Test that one brand cannot list, fetch, pin or claim another brand's recipe.
+4. **Give bots tools to save and lock in recipes.** A key scope for saves, a dry-run check, upload, lock-in, remove and list tools, with server checks on every save.
+5. **Update the bot guide and the app.** The guide teaches the loop: read a template at a named commit, build, try, lock in, reuse, report. A "Your recipes" page. Tags on posts.
+6. **Retire what the library replaces.** The old skill tables and the register door, once nothing reads them. A table drop cannot be undone, so it needs a snapshot and the owner's approval.
+7. **Later: the block and recipe file format.** Move templates to `block.yaml` and `recipe.yaml`.
 
-Worth keeping: a light fingerprint on each block and recipe (today's content hash is a close ancestor), immutable bytes so old runs still resolve, and private brand plans for one-off orders and automations.
-
-## Proposed steps
-
-1. **Fill the public repo.** Contribution docs, templates, and later CI already start here. Copy existing `c-*` components and recipes from the canonical harness source into `blocks/` and `recipes/`. Copy effects into `effects/` as `kind: effect` once we confirm where that source lives (no `cfw-effects` repo was in the org when this was written).
-2. **Snapshot what is already published.** Import today's library versions into the snapshot tables, keeping their existing content hashes as fingerprints and recording the source commit when known.
-3. **Ship the sync endpoint and Action.** One merge-to-snapshot path, authenticated with GitHub OIDC or a signed webhook. Prove it with an existing recipe before opening the repo to outside pull requests.
-4. **Point the app at snapshots.** Marketplace and `list_recipes` read the database flag. Start-asks read snapshots instead of the VENDORED map. Add Reviews tagging on new posts.
-5. **Retire the old publish path.** Stop using `publish.mjs` as the public path (keep a short admin escape hatch if needed). Then remove the VENDORED map, `approvals.server.ts`, and the `skills` table once nothing reads them.
-
-The archived public `cfw-skills` repository, if it is still needed as history, can stay archived once `cfw-studio` is the source of truth. Its fate is still an open question in [DESIGN.md](DESIGN.md).
+The archived public `cfw-skills` repository can stay archived.

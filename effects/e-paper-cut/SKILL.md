@@ -4,7 +4,7 @@ Paper-sticker cutout: a torn white edge, an optional second colour border, a dro
 
 This folder is the CFW Studio catalog entry (`kind: effect`, variation `default`). The implementation is the shared `fx` package, effect `paper_cut`, in [`../fx/effects/paper_cut.py`](../fx/effects/paper_cut.py). Run commands from `effects/` so `python -m fx` imports that package.
 
-The `fx` package is GPL-3.0-or-later. This catalog entry follows the repository GPL-3.0. See [the effects license note](../README.md#license).
+The `fx` package and this catalog entry are MIT licensed. See [the effects license note](../README.md#license).
 
 ## When to use
 

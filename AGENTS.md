@@ -1,19 +1,37 @@
 # Agent instructions
 
-This repository holds the **proposed** design for CFW Studio, scaffolds for blocks and recipes, and a checked-in subject-aware effects library under `effects/` (Python package `fx`, one `e-*` catalog entry per effect). The runtime described in the docs (CI, merge-to-snapshot sync, Marketplace listing, Reviews tagging) is not built yet.
+CFW Studio holds **templates**: recipes, blocks and effects. A template teaches. It never runs for a brand.
+
+Your brand's bot reads a template here, builds its own recipe, tries it, and saves it in that brand's recipe library inside CFW Social. The saved recipe is what runs.
+
+```text
+ CFW Studio (this repo)            CFW Social, one per brand
+ templates: teach only    read     recipe library: what runs
+ vetted, then merged  ------->  bot builds, tries, saves, locks in
+```
+
+The names "templates", "recipe library" and "built-in recipes" are proposed. The owner has not confirmed them.
+
+## What exists and what does not
+
+- Exists: this repo, with the `effects/` library (Python package `fx`) and scaffolds for `blocks/` and `recipes/`.
+- Planned, not built: the CFW tools that let a bot save, try, lock in and remove recipes in its brand recipe library, and the tags that show a post's recipe and template.
+- There is no sync from this repo into CFW. Merging here does not change what runs for any brand.
 
 ## Start here
 
-1. Read [docs/DESIGN.md](docs/DESIGN.md) for the target model (effects, blocks, recipes, GitHub as source of truth, merge-to-snapshot sync, Reviews tagging).
-2. Read [docs/DECISIONS.md](docs/DECISIONS.md) for the decisions and the reasons they were chosen on 2026-11-19.
-3. Read [docs/MIGRATION.md](docs/MIGRATION.md) before touching today's Social publish path (`publish.mjs`, the VENDORED map, Marketplace approvals in code, or the `skills` table).
-4. Follow [CONTRIBUTING.md](CONTRIBUTING.md) when adding an effect, block, or recipe. Use `effects/_template/`, `blocks/_template/`, and `recipes/_template/`. Effects live in `effects/` and are blocks of `kind: effect` that recipes reference.
+1. Read [docs/DESIGN.md](docs/DESIGN.md) for the model.
+2. Read [docs/DECISIONS.md](docs/DECISIONS.md) for why. The latest section overrides the earlier ones.
+3. Read [docs/MIGRATION.md](docs/MIGRATION.md) before touching today's Social publish path.
+4. Follow [CONTRIBUTING.md](CONTRIBUTING.md) to open a pull request.
+5. If a template fails or is wrong, read [docs/REPORTING.md](docs/REPORTING.md) and file an issue.
 
 ## Hard rules
 
-- Treat everything in `docs/` as **proposed, not built**, unless a later decision or merged implementation says otherwise.
-- Do not invent a parallel catalog, a new versioning scheme, or a bot-to-Postgres upload path. New work should match the design: contribute via pull request, approve by merge, sync a snapshot after merge, and have bots render from the snapshot.
-- Do not commit secrets, credentials, API keys, or private local paths.
-- Do not copy AGPL third-party application code into this repo. Rebuild ideas as CFW effects, blocks, and recipes.
-- Do not push directly to `main` once this repo has content. Open a pull request.
-- Do not implement the CFW sync endpoint, Marketplace changes, or Reviews tagging in this repo unless the task explicitly says to; those changes belong in the Social application, guided by `docs/MIGRATION.md`.
+- Open pull requests and issues only. The owner vets every pull request against the eight-point checklist in CONTRIBUTING.md and is the only one who merges. Never push to `main`.
+- A brand's bot saves its own recipes through CFW tools. It never edits built-in recipes and never writes rows by hand.
+- Do not commit secrets, keys, private local paths, brand facts, customer names, or order text.
+- Do not put order text or brand text into a shell command.
+- Do not copy AGPL third-party application code into this repo. Rebuild ideas as CFW effects, blocks and recipes.
+- Recipes ship whole first, in today's file format. `block.yaml` and `recipe.yaml` come later. Do not convert existing templates yet.
+- Do not implement CFW-side tools in this repo. They belong in the Social app.

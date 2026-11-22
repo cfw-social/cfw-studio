@@ -7,29 +7,15 @@ This folder is both the catalog and the engine:
 - Each `e-*` directory is one catalog entry (`effect.yaml`, `SKILL.md`, `PREVIEW.md`) an agent can open on its own.
 - The shared Python package `fx` implements all of them. `python -m fx` and `pytest` run from this directory.
 
-The merge-to-snapshot sync, Marketplace listing, and Reviews tagging in [the design](../docs/DESIGN.md) are still proposed. A folder here is checked-in source, which an agent can run locally. It is not yet a live CFW snapshot.
+An effect here is a **template**: it teaches. It does not run for a brand by itself. A brand's own bot reads an effect, builds it into that brand's own recipe, and tries it. See [the design](../docs/DESIGN.md). The CFW-side tools that save those recipes are planned, not built. A folder here is checked-in source an agent can run locally.
 
 Start a brand-new effect that is not part of `fx` from [`_template/`](_template/). To add a look to this engine, register it in `fx/effects/`, export it from `fx/effects/__init__.py`, add an `e-*` folder, and add a row to the table below.
 
 ## License
 
-Two GPL-3.0-family grants apply. They are written so they can be distributed in this one repository.
+Everything in this repository, including this `effects/` library, is under the MIT License. [`LICENSE`](LICENSE) here is the same text as the root [`LICENSE`](../LICENSE). Copyright (c) 2026 CFW Social. `pyproject.toml` records it as `license = "MIT"`.
 
-**Effects library — GPL-3.0-or-later.** [`LICENSE`](LICENSE) is the GNU General Public License, version 3. For the files that came from the `effects-lib` package, you may use the work under GPL version 3 or, at your option, any later version published by the Free Software Foundation. `pyproject.toml` records that grant as `license = "GPL-3.0-or-later"`. It covers:
-
-- `fx/` (the package and every effect module)
-- `presets/`, `examples/` (the procedural clip, the sample renders, the example scripts, and the example recipe)
-- `tests/test_smoke.py`
-- `scripts/download_models.sh`
-- `pyproject.toml`, `requirements.txt`, and `.gitignore`
-- `docs/preview/` (the two blurred stills)
-- `models/` as the download directory (the binaries stay untracked)
-
-**Catalog and the rest of CFW Studio — GPL-3.0.** The root [`LICENSE`](../LICENSE) is the license this repository states for CFW Studio: GNU GPL version 3. That covers the design docs, `blocks/`, `recipes/`, `effects/_template/`, this README, `tests/test_catalog.py`, and each `e-*` folder (`effect.yaml`, `SKILL.md`, `PREVIEW.md`, `scripts/README.md`).
-
-**One repository, both grants.** GPL-3.0-or-later code can be conveyed together with GPL-3.0 code under GPL version 3 terms. The later-version option stays on the effects-library files listed above, so a recipient can choose it for those files. The `e-*` documents tell an agent how to call `python -m fx`. They are Studio catalog entries stored beside the library so a person can find one effect and run it. GPL version 3, section 5, allows an aggregate of separate works on one medium when the collection adds no further restrictions. This repository is that collection.
-
-Edits to the effects-library paths stay GPL-3.0-or-later. Edits and new `e-*` entries, blocks, and recipes stay under the repository GPL-3.0. Dependencies below are installed from PyPI and keep their own permissive licenses.
+Dependencies below are installed from PyPI or downloaded separately. They keep their own licenses.
 
 ## Checked-in effects
 
@@ -79,7 +65,7 @@ background  ->  behind-subject graphics  ->  subject (segmentation matte)  ->  f
 ```text
 effects/
   README.md            this catalog
-  LICENSE              GPL-3.0 text; the library grant is GPL-3.0-or-later (see above)
+  LICENSE              MIT License text
   pyproject.toml       package fx-effects, import name fx
   requirements.txt
   fx/                  package: core, seg, compose, anim, text, palette, vio, audio, recipe, effects/

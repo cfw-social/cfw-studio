@@ -76,11 +76,10 @@ def test_fx_package_lives_under_effects():
 
 def test_effects_library_license_marker():
     pyproject = (EFFECTS / "pyproject.toml").read_text()
-    assert 'license = "GPL-3.0-or-later"' in pyproject
+    assert 'license = "MIT"' in pyproject
     assert (EFFECTS / "LICENSE").is_file()
     readme = (EFFECTS / "README.md").read_text()
-    assert "GPL-3.0-or-later" in readme
-    assert "GPL-3.0" in readme
+    assert "MIT License" in readme
 
 
 def test_no_private_brand_media_links():

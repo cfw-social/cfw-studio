@@ -1,0 +1,57 @@
+name: Template problem
+description: A template here failed, or is wrong. Issues are public. Read docs/REPORTING.md first.
+labels: ["template-problem"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Issues are public. Do not include keys, brand facts, order text, file paths, or customer names. See docs/REPORTING.md.
+  - type: input
+    id: template
+    attributes:
+      label: Template name
+      description: The folder name, for example p-something, c-something or e-something.
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit the bot read
+      description: The commit hash of this repo that the bot read the template from.
+    validations:
+      required: true
+  - type: textarea
+    id: step
+    attributes:
+      label: Step that failed
+      description: Which step of the template failed. Say what the bot was doing.
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: Error text
+      description: The error message. Remove any file paths, keys, brand names, and order text first.
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      description: For example Windows 11, macOS 15, or Ubuntu 24.04.
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: Tool versions
+      description: For example Python, ffmpeg, Node, and any package the template uses.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What was expected
+    validations:
+      required: true

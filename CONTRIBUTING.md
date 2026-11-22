@@ -1,6 +1,8 @@
 # Contributing to CFW Studio
 
-Thank you for improving the effects, block, and recipe library. This guide is a draft of the process we want. **The merge-to-snapshot sync and CI described here are proposed, not built yet.** Until they exist, a merged pull request updates this repository only; it does not automatically publish anything into CFW.
+Thank you for improving the templates. This repo holds **templates**: recipes, blocks and effects. A template teaches. A brand's own bot reads it, builds its own recipe, and saves that recipe in the brand's recipe library in CFW. A merge here does not publish anything into CFW and changes nothing for any brand.
+
+**Only the owner merges.** People, bots and agents open pull requests and issues only.
 
 ## What to contribute
 
@@ -12,25 +14,39 @@ A new variation of an existing block or effect is a sibling (a new `variation` i
 
 Start from `effects/_template/`, `blocks/_template/`, or `recipes/_template/`.
 
-## Pull request checklist
+## Vetting checklist
 
-1. The effect, block, or recipe id matches the folder name (`e-*`, `c-*`, or `p-*`).
-2. `effect.yaml`, `block.yaml`, or `recipe.yaml` declares inputs and outputs. A recipe's inputs should be the union of its blocks' and effects' required inputs, and it should declare the final output.
-3. `SKILL.md` is enough for an agent to run the work without private local paths or credentials.
-4. Supporting scripts live in the `scripts/` folder and are self-contained.
-5. Sample outputs are attached to the pull request (or added under a `samples/` folder) so an admin can judge quality. Effect pull requests also include a preview (see `effects/_template/PREVIEW.md`).
-6. No secrets, API keys, private local paths, or private media URLs are included.
+Whatever is merged here can end up running on a buyer's computer. The owner checks every pull request against these eight points before merging. A pull request that fails any point is not merged.
+
+1. Every script file is read in full.
+2. No network call that the template does not declare.
+3. Nothing reads keys, env files or another brand's folders.
+4. Nothing writes outside the order's work folder.
+5. Order text and brand text are never placed into a shell command.
+6. Tool and package versions are pinned.
+7. A sample run is attached.
+8. No secrets, no private paths, no brand facts.
+
+The pull request template lists the same eight points as tick boxes. Tick only what is true. Ticking a box does not replace the owner's read.
+
+## Also check before you open a pull request
+
+- The folder name matches the id (`e-*`, `c-*`, or `p-*`).
+- `SKILL.md` is enough for an agent to follow without private local paths or credentials.
+- Supporting scripts live in `scripts/` and are self-contained.
+- Effect pull requests include a preview (see `effects/_template/PREVIEW.md`).
+- Recipes ship whole first, in today's file format. Do not convert a recipe to `recipe.yaml` or `block.yaml` yet.
 
 ## Review and merge
 
-An admin reviews the sample outputs, not only the file list. Merging to `main` is the approval. Once the sync is built, that merge will snapshot the changed effects, blocks, and recipes into CFW as immutable fingerprinted copies. Until then, merge only means the files are in this repository.
+The owner reads the scripts and the sample run, not only the file list. Merging puts the template in this repo. It does not sync into CFW.
 
 ## Bots
 
-Bots are welcome to open pull requests when they find a reusable piece, invent an effect or block, or compose a new recipe. A bot should follow this same checklist, include sample outputs, and never write snapshots directly into CFW.
+Bots may open pull requests when they find a reusable piece or build a better template. Follow the same checklist, attach a sample run, and never put brand facts, order text or keys in a pull request. A bot never merges.
+
+If a template fails or is wrong, file an issue. Read [docs/REPORTING.md](docs/REPORTING.md) first.
 
 ## License
 
-Contributions are under the repository's GPL-3.0 license unless a later decision says otherwise.
-
-The effects library already in `effects/` (`fx/`, `presets/`, `examples/`, `tests/test_smoke.py`, `scripts/download_models.sh`, and the synthetic media and preview stills that shipped with it) is GPL-3.0-or-later. See [effects/README.md](effects/README.md#license). Changes to those paths stay on that grant. New and edited `e-*` catalog entries follow the repository GPL-3.0, same as blocks and recipes. The two grants are compatible and are distributed together as an aggregate.
+By opening a pull request you agree that your contribution is under the MIT License in [LICENSE](LICENSE). This applies to everything in the repository, including `effects/`.
