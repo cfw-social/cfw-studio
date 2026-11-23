@@ -4,7 +4,8 @@
   master_loudness.py --in work/premium/polished.mp4 --out saves/assembled_video.mp4 [--target -14]
 
 Pass 1 measures with ffmpeg's loudnorm (JSON). Pass 2 applies loudnorm with those measured values and
-linear=true; the picture is copied, the sound is AAC 192k, 48 kHz, stereo. A missing or non-finite
+linear=true; the picture is copied, the sound is AAC 192k, 48 kHz, stereo and is cut to the picture's length (the
+loudness filter and the AAC encoder both add a little tail, up to 100 ms and then one 21 ms AAC frame). A missing or non-finite
 measurement is a failure: there is no one-pass fallback. ffmpeg is run with an argument list and
 `-protocol_whitelist file`, so a path can only name a local file. Both paths must be inside the current
 folder; the output is written to a temporary name and renamed into place. Exit 0 done, 1 failed, 2 bad
@@ -46,6 +47,16 @@ def parse_stats(stderr):
     return out
 
 
+def picture_seconds(src):
+    """The video stream's own length, so the mastered sound can be cut to it."""
+    p = subprocess.run(["ffprobe", "-v", "error", "-protocol_whitelist", "file", "-select_streams", "v:0", "-show_entries",
+                        "stream=duration", "-of", "csv=p=0", src], capture_output=True, text=True, timeout=120)
+    value = float(p.stdout.strip().splitlines()[0])
+    if p.returncode != 0 or not math.isfinite(value) or value <= 0:
+        raise ValueError("could not read the picture length")
+    return value
+
+
 def apply_filter(stats, target):
     return ("loudnorm=I=%g:TP=-1.5:LRA=11:measured_I=%g:measured_TP=%g:measured_LRA=%g:measured_thresh=%g:"
             "offset=%g:linear=true:print_format=summary"
@@ -71,11 +82,12 @@ def main(argv=None):
         if first.returncode != 0:
             raise ValueError("the measuring pass failed")
         stats = parse_stats(first.stderr)
+        picture = picture_seconds(a.src)
         os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
         tmp = os.path.join(os.path.dirname(os.path.abspath(a.out)), ".master-%d.mp4" % os.getpid())
         second = subprocess.run(
             ["ffmpeg", "-hide_banner", "-nostdin", "-y", "-protocol_whitelist", "file", "-i", a.src,
-             "-map", "0:v", "-map", "0:a", "-c:v", "copy", "-af", apply_filter(stats, a.target),
+             "-map", "0:v", "-map", "0:a", "-c:v", "copy", "-af", apply_filter(stats, a.target), "-t", "%.3f" % picture,
              "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2", "-movflags", "+faststart", tmp],
             capture_output=True, text=True, timeout=1800)
         if second.returncode != 0:

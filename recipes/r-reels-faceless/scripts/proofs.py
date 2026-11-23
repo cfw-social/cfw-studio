@@ -36,8 +36,14 @@ def run(args):
 
 
 def psnr(video, t1, t2):
-    err = run(["-protocol_whitelist", "file", "-ss", "%.3f" % t1, "-i", video, "-protocol_whitelist", "file", "-ss", "%.3f" % t2,
-               "-i", video, "-frames:v", "1", "-filter_complex", "[0:v][1:v]psnr", "-f", "null", "-"])
+    # Each input is cut to two frames with an input `-t` and its audio is dropped with an input `-an`, so both
+    # inputs reach their end and the psnr filter flushes and prints its summary. Stopping the run with
+    # `-frames:v 1` instead races the filter: on ffmpeg 8.1 the summary is often never printed (10 of 30 runs
+    # printed it on one file), and more often so on a file with an audio track. The value is the average over
+    # the two frames of each side.
+    err = run(["-an", "-protocol_whitelist", "file", "-ss", "%.3f" % t1, "-t", "0.07", "-i", video,
+               "-an", "-protocol_whitelist", "file", "-ss", "%.3f" % t2, "-t", "0.07", "-i", video,
+               "-filter_complex", "[0:v][1:v]psnr", "-f", "null", "-"])
     m = re.search(r"average:(\S+)", err)
     if not m:
         raise ValueError("no PSNR value in ffmpeg's output")

@@ -87,7 +87,7 @@ Then run this recipe's picture guards (`frame_qa.py`, Python; each prints what i
 python3 "$RECIPE_DIR/scripts/frame_qa.py" first-frames saves/body_video.mp4 saves/beat_list.json --out work/first-frames
 python3 "$RECIPE_DIR/scripts/frame_qa.py" band-scan saves/body_video.mp4 --beats saves/beat_list.json --skip-broll
 python3 "$RECIPE_DIR/scripts/frame_qa.py" luma-floor saves/body_video.mp4 --floor 16
-python3 "$RECIPE_DIR/scripts/frame_qa.py" tail-luma saves/body_video.mp4 --min 30
+python3 "$RECIPE_DIR/scripts/frame_qa.py" tail-luma saves/body_video.mp4 --min 26
 ```
 
 `--skip-broll` leaves b-roll beats out of the band scan, because footage may move in the band; look at

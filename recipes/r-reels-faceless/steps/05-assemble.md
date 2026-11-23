@@ -83,7 +83,11 @@ args = ['-y', '-protocol_whitelist', 'file', '-i', 'work/assembled-raw.mp4', '-f
         'work/assembled-av.mp4']
 ```
 
-Then require `python3 "$RECIPE_DIR/scripts/frame_qa.py" av-span work/assembled-av.mp4` to pass.
+Then require `python3 "$RECIPE_DIR/scripts/frame_qa.py" av-span work/assembled-av.mp4` to pass. This is the check
+that protects the caption pass from a black tail. It fails if the audio ends more than one AAC frame (21.3 ms) after
+the picture: an AAC stream is built from whole 1024-sample frames, so an exact cut still ends up to one frame later,
+but any longer overhang is real sound past the picture. If it fails, pad the picture or cut the sound again with the
+command above; do not loosen the check.
 
 ## Captions, grade and sound effects with b-reel-premium
 
@@ -94,10 +98,11 @@ other model, no nested agent). Read `"$BLOCKS_DIR/b-reel-premium/README.md"` for
   other default.
 - `brand`: `accent` and `fg` as six hex digits (the palette's `ACCENT` and `CAP_FG`). A brand font file
   goes in as `brand.font_file` (inside `inputs/`); with none, captions use the generic sans-serif.
-- `caption_groups`: this recipe requires 2 to 4 words each (up to 6 to keep a short phrase whole; a 1-word group
-  only for a last word that cannot join the one before). The plan checker itself accepts 1 to 8 words, so it will
-  not catch a 1-word group: you must, in time order, not
-  overlapping, break on a sentence end or a pause of 150 ms or more, each word with its exact transcript
+- `caption_groups`: every group holds 2 to 4 words. The only exception is the last group, which may hold one
+  word that cannot join the group before it. Break a group at a sentence end or a pause of 150 ms or more only
+  when both sides keep at least 2 words; never leave a word alone, let it join the neighbour. (The plan checker
+  in the block accepts 1 to 8 words, so run `check_captions.py` below as well.) In time order, not
+  overlapping, each word with its exact transcript
   time (`s`, `e`), at most one `em` word per group, `style` cycling 0, 1, 2 so neighbours differ, Latin
   script only, the words as spoken. Cover all the narration; no captions over the silent outro. The last
   group ends within the cover tolerance (4 s) of the end of the reel.
@@ -109,6 +114,7 @@ other model, no nested agent). Read `"$BLOCKS_DIR/b-reel-premium/README.md"` for
   Never turn captions off because a render failed.
 
 ```text
+python3 "$RECIPE_DIR/scripts/check_captions.py" --plan work/premium/plan.json
 python3 "$BLOCKS_DIR/b-reel-premium/scripts/check_plan.py" --plan work/premium/plan.json --reel work/assembled-av.mp4 --cover-tolerance 4
 python3 "$BLOCKS_DIR/b-reel-premium/scripts/build_comp.py" --plan work/premium/plan.json --reel work/assembled-av.mp4 --cap-top 1450 --cover-tolerance 4 --outdir work/premium/comp
 python3 "$BLOCKS_DIR/b-hyperframes/scripts/hf_render.py" --comp work/premium/comp --out work/premium/captions.mov --format mov --quiet
@@ -147,9 +153,15 @@ the 0.4 s cover is not in front yet); spot-listen to prove the narration stays i
 python3 "$RECIPE_DIR/scripts/proofs.py" volume --video saves/assembled_video.mp4 --beats saves/beat_list.json
 python3 "$RECIPE_DIR/scripts/frame_qa.py" band-scan saves/assembled_video.mp4 --beats saves/beat_list.json --skip-broll
 python3 "$RECIPE_DIR/scripts/frame_qa.py" first-frames saves/assembled_video.mp4 saves/beat_list.json --outro <bed duration> --out work/first-frames-assembled
-python3 "$RECIPE_DIR/scripts/frame_qa.py" av-span saves/assembled_video.mp4
-python3 "$RECIPE_DIR/scripts/frame_qa.py" tail-luma saves/assembled_video.mp4 --min 30
+python3 "$RECIPE_DIR/scripts/frame_qa.py" av-span saves/assembled_video.mp4 --after-captions
+python3 "$RECIPE_DIR/scripts/frame_qa.py" tail-luma saves/assembled_video.mp4 --min 26
 ```
+
+Two notes on those guards. `--after-captions` skips the black-tail frame count, which only matters before the caption pass (the check above on `work/assembled-av.mp4`). The loudness master re-encodes the sound as AAC, which ends up to one AAC frame (21.3 ms)
+after the picture; `av-span` allows that and nothing more. `tail-luma --min 26`: a dark brand canvas is lifted only
+to luma 24, so a lit closing card measures in the high 20s to 30s; 26 still catches a black or faded end (the
+gate's own not-black floor is 16).
+
 
 Read the first, middle and outro frames; confirm the
 actual captions, CTA, fonts and effects. A stamp alone proves nothing. Record `vo_continuous_bed`,

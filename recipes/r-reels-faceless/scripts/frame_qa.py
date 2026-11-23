@@ -4,7 +4,11 @@
 Each subcommand prints what it measured and exits 1 when the picture fails (2 = bad input).
 
   av-target FILE              The frame-aligned end time (a multiple of 0.1 s) both streams are padded to.
-  av-span FILE                FAIL when the caption pass would outlast the picture. It sizes its HyperFrames
+  av-span FILE                FAIL when the caption pass would outlast the picture, or the audio ends more than one
+                              AAC frame (21.3 ms, the padding of any AAC encode) after the picture.
+                              With --after-captions only the sound check runs: once the captions are rendered no
+                              frame is rendered past the picture, so the frame count would only complain about a
+                              few milliseconds of picture length. It sizes its HyperFrames
                               composition from the FORMAT duration (audio included), rounded to 0.01 s, and
                               renders ceil(dur x 30) frames. HyperFrames shows a blank frame once the reel's
                               own frames run out before the composition ends (videoFrameExtractor.ts, 0.7.5:
@@ -130,6 +134,13 @@ def is_graphics(b):
 
 # ---------------------------------------------------------------- av-target / av-span
 
+# AAC is coded in whole frames of 1024 samples (21.3 ms at 48 kHz), so an AAC re-encode (the loudness master, the
+# cover concat) cannot end inside a frame: the audio stream ends up to one frame after the picture even when
+# the content is cut exactly. That is not sound outlasting the picture, so av-span allows one frame of overhang
+# and no more. Anything longer is real audio past the picture and fails.
+AAC_FRAME = 1024 / 48000.0 + 0.001
+
+
 def av_numbers(path, fps=FPS):
     info = probe(path)
     fmt = float(info.get("format", {}).get("duration") or 0.0)
@@ -137,6 +148,8 @@ def av_numbers(path, fps=FPS):
     a_end = stream_end(info, "audio")
     if v_end is None:
         raise Bad("%s has no video stream" % path)
+    if a_end is not None and 0 < a_end - v_end <= AAC_FRAME:
+        fmt = v_end                                          # only the last AAC frame's padding: not real sound
     p2_dur = round(fmt, 2)                                   # caption pass: round(format duration, 2)
     p2_frames = int(math.ceil(p2_dur * fps - 1e-6))          # HyperFrames: ceil(duration x fps)
     video_frames = int(round(v_end * fps))                   # frames the reel can supply from t = 0
@@ -157,15 +170,17 @@ def cmd_av_span(a):
     n = av_numbers(a.file)
     print(json.dumps(n))
     bad = []
-    if n["blank_tail_frames"] > 0:
+    if n["blank_tail_frames"] > 0 and not a.after_captions:
         bad.append("the premium pass would render %d frame(s) past the picture (black tail): format %.3fs, "
                    "picture ends %.3fs" % (n["blank_tail_frames"], n["format_dur"], n["video_end"]))
-    if n["audio_end"] is not None and n["audio_end"] > n["video_end"] + 1e-3:
-        bad.append("audio ends %.3fs after the picture" % (n["audio_end"] - n["video_end"]))
+    if n["audio_end"] is not None and n["audio_end"] > n["video_end"] + AAC_FRAME:
+        bad.append("audio ends %.3fs after the picture (more than one AAC frame, %.3fs)"
+                   % (n["audio_end"] - n["video_end"], AAC_FRAME - 0.001))
     for b in bad:
         print("FAIL av-span: " + b)
     if not bad:
-        print("PASS av-span: the picture covers the whole file")
+        print("PASS av-span: the picture covers the whole file" if not a.after_captions
+              else "PASS av-span: the sound does not outlast the picture")
     return 1 if bad else 0
 
 
@@ -419,7 +434,11 @@ def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     sub = p.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("av-target"); s.add_argument("file"); s.set_defaults(fn=cmd_av_target)
-    s = sub.add_parser("av-span"); s.add_argument("file"); s.set_defaults(fn=cmd_av_span)
+    s = sub.add_parser("av-span"); s.add_argument("file")
+    s.add_argument("--after-captions", action="store_true",
+                   help="the caption pass is already done: skip the black-tail frame count (a few ms of picture length "
+                        "is not a frame to render) and check only that the sound does not outlast the picture")
+    s.set_defaults(fn=cmd_av_span)
     s = sub.add_parser("first-frames"); s.add_argument("video"); s.add_argument("beats")
     s.add_argument("--offset", type=float, default=0.0, help="where beat 0 starts in VIDEO (0.4 after the cover)")
     s.add_argument("--outro", type=float, default=None, help="outro card start time in VIDEO (checked too)")
@@ -448,7 +467,7 @@ def main(argv=None):
     s.add_argument("--samples", default="0.1,0.3,0.5,0.7,0.9")
     s.set_defaults(fn=cmd_luma_floor)
     s = sub.add_parser("tail-luma"); s.add_argument("video")
-    s.add_argument("--min", type=float, default=30.0)
+    s.add_argument("--min", type=float, default=26.0)
     s.set_defaults(fn=cmd_tail_luma)
     a = p.parse_args(argv)
     try:

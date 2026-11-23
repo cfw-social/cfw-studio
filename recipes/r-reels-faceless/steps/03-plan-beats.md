@@ -47,7 +47,8 @@ Author `work/scene_plan.json`, one scene per 4 to 6 second idea, splitting longe
 | `ghost` | A thematic number or letter (up to 4 characters). Never a placeholder such as `CTA` or `TITLE`. |
 | `type` | `hook`, `terminal`, `chips`, `flow`, `checklist`, `stat`, `cta`, `standard` or `typing`. |
 | `sub` | Optional, up to 160 characters. |
-| type fields | `lines` (terminal, 1 to 8 texts), `chips` (2 to 8), `items` (checklist, 2 to 6), `flow` (2 to 5), `stat` and `unit` (stat), `prompt`, `label`, `card_label`, `bottom_tag` (typing), or for `hook`: `line1`, `line2`, `line3`. |
+| text limits | `card_fill.py` refuses longer text (exit 2, naming the field): `eyebrow` 40, `ghost` 4, `sub` 160, `stat` 10, `unit` 14, each `chips` entry 24, each `items` entry 60, each `flow` entry 28, each `lines` entry 60. |
+| type fields | `lines` (terminal, 1 to 8 texts), `chips` (2 to 8), `items` (checklist, 2 to 6), `flow` (2 to 5), `stat` (up to 10 characters) and `unit` (up to 14 characters) for stat, `prompt`, `label`, `card_label`, `bottom_tag` (typing), or for `hook`: `line1`, `line2`, `line3`. |
 
 The `hook` and `typing` cards come from `b-typing-ui`: they have no ghost glyph, the hook card has no hero (its big
 title lines are the focus) and the typing card's chat card is its hero. A `typing` scene must be long enough for its

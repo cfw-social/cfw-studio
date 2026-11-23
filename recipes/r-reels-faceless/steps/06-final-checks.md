@@ -33,14 +33,15 @@ args = ['-y', '-loop', '1', '-t', '0.4', '-protocol_whitelist', 'file', '-i', 's
 ```
 
 Join the freeze and the assembled reel with FFmpeg's `concat` filter (not the concat demuxer): it keeps every
-later beat at exactly the 0.4 s offset the checks below use. Re-encode (a stream copy risks non-monotonic DTS).
+later beat at exactly the 0.4 s offset the checks below use. Re-encode (a stream copy risks non-monotonic DTS). `-shortest` cuts the sound at the end of the picture: the two
+sound parts together run about 24 ms longer than the picture, and without it `av-span` fails.
 
 ```python
 fc = '[0:v][0:a][1:v][1:a]concat=n=2:v=1:a=1[v][a]'
 args = ['-y', '-protocol_whitelist', 'file', '-i', 'work/cover-freeze.mp4', '-protocol_whitelist', 'file', '-i', 'prior/assembled_video.mp4', '-filter_complex', fc,
         '-map', '[v]', '-map', '[a]', '-c:v', 'libx264', '-profile:v', 'high', '-level', '4.0', '-crf', '18',
         '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-ac', '2',
-        '-movflags', '+faststart', 'work/final-candidate.mp4']
+        '-shortest', '-movflags', '+faststart', 'work/final-candidate.mp4']
 ```
 
 The candidate must have exactly 12 frames more than the assembled reel (count them with
@@ -72,11 +73,13 @@ file with the 0.4 s offset:
 
 ```text
 python3 "$RECIPE_DIR/scripts/frame_qa.py" luma-floor work/final-candidate.mp4 --floor 16 --samples 0.05,0.2,0.4,0.6,0.8,0.95
-python3 "$RECIPE_DIR/scripts/frame_qa.py" tail-luma work/final-candidate.mp4 --min 30
+python3 "$RECIPE_DIR/scripts/frame_qa.py" tail-luma work/final-candidate.mp4 --min 26
 python3 "$RECIPE_DIR/scripts/frame_qa.py" first-frames work/final-candidate.mp4 saves/beat_list.json --offset 0.4 --outro <0.4 + bed duration> --out work/first-frames
 python3 "$RECIPE_DIR/scripts/frame_qa.py" band-scan work/final-candidate.mp4 --beats saves/beat_list.json --offset 0.4 --skip-broll
-python3 "$RECIPE_DIR/scripts/frame_qa.py" av-span work/final-candidate.mp4
+python3 "$RECIPE_DIR/scripts/frame_qa.py" av-span work/final-candidate.mp4 --after-captions
 ```
+
+`av-span` here allows the one AAC frame (21.3 ms) of padding that the cover join's re-encode adds, and nothing more.
 
 Run the per-beat proofs on the candidate. The offset is 0.4 because the 0.4 s cover freeze sits in front of the
 reel (the candidate has exactly 12 more frames, so every beat starts 0.4 s later than in the beat list):

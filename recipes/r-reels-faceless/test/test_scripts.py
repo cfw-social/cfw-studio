@@ -724,6 +724,21 @@ class Proofs(Base):
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("FAIL", r.stdout)
 
+    def test_psnr_works_on_files_with_audio_every_time(self):
+        """Regression: with `-frames:v 1` the summary line was often missing on a file with an audio track."""
+        ff("-f", "lavfi", "-i", "testsrc2=s=1080x1920:r=30:d=12", "-f", "lavfi", "-i", "sine=f=220:d=12", "-c:v", "libx264",
+           "-preset", "ultrafast", "-pix_fmt", "yuv420p", "-c:a", "aac", os.path.join(self.tmp, "av.mp4"))
+        self.beats([1.5] * 8)
+        for _ in range(3):
+            r = self.run_proof("psnr", "--video", "av.mp4", "--beats", "beats.json")
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            self.assertEqual(r.stdout.count("PASS beat"), 8, r.stdout)
+        ff("-f", "lavfi", "-i", "color=c=0x336699:s=1080x1920:r=30:d=12", "-f", "lavfi", "-i", "sine=f=220:d=12", "-c:v", "libx264",
+           "-preset", "ultrafast", "-pix_fmt", "yuv420p", "-c:a", "aac", os.path.join(self.tmp, "frozen-av.mp4"))
+        r = self.run_proof("psnr", "--video", "frozen-av.mp4", "--beats", "beats.json")
+        self.assertEqual(r.returncode, 1, "a frozen picture with sound must still fail: " + r.stdout)
+        self.assertIn("FAIL beat", r.stdout)
+
     def test_volume_uses_the_offset_and_fails_silence(self):
         ff("-f", "lavfi", "-i", "color=c=gray:s=160x284:r=30:d=4", "-f", "lavfi", "-i", "sine=f=220:d=4", "-af", "volume=0.3",
            "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p", "-c:a", "aac", os.path.join(self.tmp, "loud.mp4"))
@@ -733,6 +748,77 @@ class Proofs(Base):
         self.assertEqual(self.run_proof("volume", "--video", "loud.mp4", "--beats", "beats.json", "--offset", "0.4").returncode, 0)
         self.assertEqual(self.run_proof("volume", "--video", "silent.mp4", "--beats", "beats.json").returncode, 1)
         self.assertEqual(self.run_proof("volume", "--video", "../x.mp4", "--beats", "beats.json").returncode, 2)
+
+
+@need_ffmpeg
+class AacOverhang(Base):
+    def make(self, name, video_s, audio_s):
+        ff("-f", "lavfi", "-i", "testsrc2=s=1080x1920:r=30:d=%g" % video_s, "-f", "lavfi", "-i", "sine=f=220:d=%g" % audio_s, "-af",
+           "tremolo=f=3:d=0.7,volume=0.2", "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p", "-c:a", "aac",
+           os.path.join(self.tmp, name))
+
+    def test_av_span_passes_the_real_output_of_the_loudness_master(self):
+        """Regression: the AAC re-encode ends the audio about 15 ms after the picture; that is not an error."""
+        for seconds in (3.0, 3.1, 4.0333):
+            self.make("in.mp4", seconds, seconds)
+            r = script("master_loudness.py", "--in", "in.mp4", "--out", "out.mp4", cwd=self.tmp)
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            for extra in ((), ("--after-captions",)):
+                r = qa("av-span", os.path.join(self.tmp, "out.mp4"), *extra)
+                self.assertEqual(r.returncode, 0, "%s s %s: %s" % (seconds, extra, r.stdout))
+
+    def test_av_span_passes_the_cover_concat_and_still_fails_real_overhang(self):
+        self.make("a.mp4", 3.0, 3.0)
+        card_clip(os.path.join(self.tmp, "c.mp4"), 0.4)
+        ff("-i", os.path.join(self.tmp, "c.mp4"), "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo", "-t", "0.4", "-c:v", "libx264",
+           "-pix_fmt", "yuv420p", "-c:a", "aac", os.path.join(self.tmp, "freeze.mp4"))
+        ff("-i", os.path.join(self.tmp, "freeze.mp4"), "-i", os.path.join(self.tmp, "a.mp4"), "-filter_complex",
+           "[0:v][0:a][1:v][1:a]concat=n=2:v=1:a=1[v][a]", "-map", "[v]", "-map", "[a]", "-c:v", "libx264", "-pix_fmt", "yuv420p",
+           "-c:a", "aac", "-shortest", os.path.join(self.tmp, "joined.mp4"))
+        self.assertEqual(qa("av-span", os.path.join(self.tmp, "joined.mp4"), "--after-captions").returncode, 0)
+        self.make("long.mp4", 3.0, 3.2)
+        for extra in ((), ("--after-captions",)):
+            r = qa("av-span", os.path.join(self.tmp, "long.mp4"), *extra)
+            self.assertEqual(r.returncode, 1, r.stdout)
+            self.assertIn("more than one AAC frame", r.stdout)
+        self.assertIn("--after-captions", slurp(os.path.join(STEPS, "06-final-checks.md")))
+
+    def test_tail_luma_default_floor_is_26(self):
+        self.assertIn("default=26.0", slurp(FRAME_QA))
+
+
+class CaptionGroups(Base):
+    def plan(self, sizes):
+        return {"caption_groups": [{"start": i, "end": i + 0.9, "style": 0,
+                                    "words": [{"w": "W%d" % j, "s": i, "e": i + 0.1, "em": False} for j in range(n)]}
+                                   for i, n in enumerate(sizes)]}
+
+    def run_check(self, sizes):
+        jdump(self.plan(sizes), os.path.join(self.tmp, "plan.json"))
+        return script("check_captions.py", "--plan", "plan.json", cwd=self.tmp)
+
+    def test_two_to_four_words_pass_and_only_the_last_may_be_one(self):
+        self.assertEqual(self.run_check([2, 3, 4, 2]).returncode, 0)
+        self.assertEqual(self.run_check([3, 3, 1]).returncode, 0)
+
+    def test_a_single_word_in_the_middle_or_a_long_group_fails(self):
+        r = self.run_check([3, 1, 3])
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertIn("group 1", r.stdout)
+        self.assertEqual(self.run_check([1, 1, 1, 1, 1, 1, 3]).returncode, 1)
+        self.assertEqual(self.run_check([3, 5, 2]).returncode, 1)
+        self.assertEqual(self.run_check([3, 0]).returncode, 1)
+
+    def test_bad_plan_paths(self):
+        self.assertEqual(script("check_captions.py", "--plan", "../x.json", cwd=self.tmp).returncode, 2)
+        put(os.path.join(self.tmp, "bad.json"), "not json")
+        self.assertEqual(script("check_captions.py", "--plan", "bad.json", cwd=self.tmp).returncode, 2)
+
+    def test_the_step_states_the_same_rule(self):
+        text = slurp(os.path.join(STEPS, "05-assemble.md"))
+        self.assertIn("every group holds 2 to 4 words", text)
+        self.assertIn("check_captions.py", text)
+        self.assertNotIn("up to 6", text)
 
 
 class DeliverFinal(Base):
