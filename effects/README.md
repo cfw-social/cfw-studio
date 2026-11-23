@@ -91,7 +91,7 @@ effects/
 
 ## Run and test
 
-Needs Python 3.10+ and `ffmpeg` / `ffprobe` on `PATH`. From this directory:
+Needs Python 3.10 to 3.14 and `ffmpeg` / `ffprobe` on `PATH`. Python 3.15 does not work yet: `onnxruntime` has no build for it, so the install fails. From this directory:
 
 ```bash
 python -m venv .venv && . .venv/bin/activate
