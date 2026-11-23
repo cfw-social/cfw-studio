@@ -131,6 +131,30 @@ class AuthoringCheckEscaping(CheckHarness):
         p, _ = self.run_check({"accent": "#E11D48"}, html, self.slides('Fish & <chips> "now"'))
         self.assertEqual(p.returncode, 0, p.stderr)
 
+    def test_the_accent_span_the_template_shows_is_accepted(self):
+        """Regression: template.html shows <span class="hl">word</span> in a headline, and the check refused it."""
+        html = self.page('<h1>The big <span class="hl">promise</span> headline</h1>')
+        p, wd = self.run_check({"accent": "#E11D48"}, html, self.slides("The big promise headline"))
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertTrue(os.path.exists(os.path.join(wd, "saves", "carousel_html.md")))
+        template = read(os.path.join(SKILL_DIR, "template.html"))
+        self.assertIn('<span class="hl">', template)
+        self.assertIn('<span class="hl">', read(STEP02))
+
+    def test_any_other_span_or_tag_still_splits_the_copy_and_fails(self):
+        for first in ('<h1>The big <span class="x">promise</span> headline</h1>',
+                      '<h1>The big <b>promise</b> headline</h1>',
+                      '<h1>The big <span class="hl" onclick="x()">promise</span> headline</h1>'):
+            html = self.page(first)
+            p, _ = self.run_check({"accent": "#E11D48"}, html, self.slides("The big promise headline"))
+            self.assertNotEqual(p.returncode, 0, first)
+
+    def test_a_span_written_in_the_copy_is_still_raw_markup(self):
+        raw = 'The <span class="hl">big</span> one'
+        html = self.page("<h1>%s</h1>" % raw)
+        p, _ = self.run_check({"accent": "#E11D48"}, html, self.slides(raw))
+        self.assertNotEqual(p.returncode, 0)
+
     def test_raw_tag_in_copy_fails(self):
         html = self.page("<h1><h1>Big</h1></h1>")
         p, wd = self.run_check({"accent": "#E11D48"}, html, self.slides("<h1>Big</h1>"))

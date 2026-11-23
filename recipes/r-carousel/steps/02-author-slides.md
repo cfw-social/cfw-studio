@@ -27,7 +27,9 @@ browser opens. So:
   with a small Python helper that calls `html.escape`; never paste copy into the
   HTML by hand. The check below finds each headline and body in the page in its
   escaped form, and fails if the raw form is there (so a raw `<h1>` or
-  `<a href=...>` in the copy fails).
+  `<a href=...>` in the copy fails). One exception: the template marks an accent word as
+  `<span class="hl">word</span>` inside a headline. Write the copy in `slide_copy.json` as plain text
+  (without the span) and wrap the word in the HTML; the check ignores exactly that span and no other.
 - The slide HTML has no `<script>`, no event-handler attributes (`onclick=`,
   `onerror=`, any `on...=`), and no `<iframe>`, `<object>`, `<embed>`, `<base>`
   or `<form>`. It has no `srcset`, `poster`, `action` or `ping` attribute.
@@ -97,13 +99,16 @@ ids = re.findall(r'<section[^>]*class="[^"]*\bslide\b[^"]*"[^>]*id="s(\d+)"', ht
 check(sorted(map(int, ids)) == list(range(1, n + 1)), 'slide sections differ from outline')
 check(len(copy['slides']) == n, 'copy count differs from outline')
 # Text is escaped: each headline and body is in the page escaped, and never raw when escaping changes it.
+# One accent span is allowed inside a headline or body, exactly as template.html shows it: <span class="hl">word</span>.
+# Only that exact span is ignored when looking for the escaped copy; any other tag still splits the text and fails.
+plain_html = re.sub(r'<span class="hl">|</span>', '', html)
 for slide in copy['slides']:
     for field in ('headline', 'body'):
         text = slide.get(field) or ''
         if not text:
             continue
         esc = {H_.escape(text, quote=False), H_.escape(text, quote=True)}
-        check(any(e in html for e in esc), 'slide %s: %s text missing or not escaped: %r' % (slide.get('n'), field, text[:30]))
+        check(any(e in plain_html for e in esc), 'slide %s: %s text missing or not escaped: %r' % (slide.get('n'), field, text[:30]))
         if text not in esc:
             check(text not in html, 'slide %s: raw (unescaped) %s text in the HTML: %r' % (slide.get('n'), field, text[:30]))
 check('<meta charset="UTF-8">' in html, 'missing UTF-8 charset')
