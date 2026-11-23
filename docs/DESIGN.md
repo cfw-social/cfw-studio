@@ -1,6 +1,6 @@
 # CFW Studio: design
 
-**Part of this is built and part is planned.** This repo and its templates exist. The CFW-side tools that let a brand's bot save and lock in its own recipes are **planned, not built**. See [DECISIONS.md](DECISIONS.md) for why, and the last section there for what changed on 2026-11-22. See [MIGRATION.md](MIGRATION.md) for the path from today's system.
+**Part of this is built and part is planned.** This repo and its templates exist. The CFW-side tools that let a brand's bot save and lock in its own recipes are **built and live** in CFW Social. The post tags and a "Your recipes" page are **planned**. See [DECISIONS.md](DECISIONS.md) for why, and the last section there for what changed on 2026-11-22. See [MIGRATION.md](MIGRATION.md) for the path from today's system.
 
 The names "templates", "recipe library" and "built-in recipes" are proposed and not yet confirmed by the owner.
 
@@ -26,7 +26,7 @@ Each brand's own bot reads a template here, builds its own recipe, tries it, and
            +------------------------------+
 ```
 
-The bot follows CFW Social's bot guide. The Studio section of that guide is planned, not written yet.
+The bot follows CFW Social's bot guide. It starts at `https://app.cfw.social/assets/bot-setup.md`. Saving, trying and locking in are on `https://app.cfw.social/assets/bot-studio.md`.
 
 CFW also keeps **built-in recipes**: the ones CFW makes. A bot may start from one, too.
 
@@ -34,10 +34,13 @@ CFW also keeps **built-in recipes**: the ones CFW makes. A bot may start from on
 
 | Piece | State |
 | --- | --- |
-| This repo, eight building blocks, the `effects/` library, a scaffold for recipes | Exists. Recipe templates are added separately. A recipe refers to a block by the relative path `../../blocks/b-<name>/`. |
+| This repo, eight building blocks, the `effects/` library, ten recipe templates | Exists. A recipe refers to a block by the relative path `../../blocks/b-<name>/`. |
 | Issue form and pull request template | Exists (see `.github/`) |
-| Brand recipe library in CFW | Planned, not built |
-| Tools to check, save, lock in and remove a recipe | Planned, not built |
+| Brand recipe library in CFW Social. A brand's own recipe name starts with `my-`. Limits: 20 recipes per brand, 10 open drafts per recipe. | Built and live |
+| Tools to list, check, upload, save, lock in and remove a recipe (`list_my_recipes`, `check_recipe_save`, `upload_recipe_files`, `save_recipe_draft`, `lock_in_recipe`, `remove_recipe`) | Built and live. They work only for a key made with the "Save its own recipes" permission. It is off unless the person ticks it. Without it the tools answer `recipe_saves_off`. |
+| A try: `place_render_order` takes `recipe` and `recipeVersion`, so a try needs a saved draft | Built and live |
+| "Your recipes" page for the person in CFW Social | Planned, not built |
+| CFW Studio page of the bot guide (`https://app.cfw.social/assets/bot-studio.md`) | Built and live |
 | Tags on posts: brand recipe and template | Planned, not built |
 | `block.yaml` and `recipe.yaml` format | Later. The `_template` folders show it. Real recipes are copied in whole, in today's file format, first. |
 
@@ -76,7 +79,7 @@ With no approve tap, safety rests on four things.
 
 1. **Vetting at the template door.** Whatever is merged here can end up running on a buyer's computer. The owner reads the scripts before merge, using the eight-point checklist in [CONTRIBUTING.md](../CONTRIBUTING.md). Only the owner merges.
 2. **Brand-only scope.** No other brand can list, read, pin or claim a brand's recipe.
-3. **Server checks on every save** (planned): the brand key, fingerprints computed by the server, size limits, and a refusal of anything that looks like a key.
+3. **Server checks on every save:** the brand key, fingerprints computed by the server, size limits, and a refusal of anything that looks like a key.
 4. **The user stays in the loop.** A recipe is locked only when the user says they like it.
 
 Brand facts stay out of templates. Voice, colors and names live in Brand DNA and in the order inputs. A recipe holds the method, not the brand's data.

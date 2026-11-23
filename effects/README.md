@@ -7,7 +7,7 @@ This folder is both the catalog and the engine:
 - Each `e-*` directory is one catalog entry (`effect.yaml`, `SKILL.md`, `PREVIEW.md`) an agent can open on its own.
 - The shared Python package `fx` implements all of them. `python -m fx` and `pytest` run from this directory.
 
-An effect here is a **template**: it teaches. It does not run for a brand by itself. A brand's own bot reads an effect, builds it into that brand's own recipe, and tries it. See [the design](../docs/DESIGN.md). The CFW-side tools that save those recipes are planned, not built. A folder here is checked-in source an agent can run locally.
+An effect here is a **template**: it teaches. It does not run for a brand by itself. A brand's own bot reads an effect, builds it into that brand's own recipe, and tries it. See [the design](../docs/DESIGN.md). The CFW-side tools that save those recipes are live, for a key made with the "Save its own recipes" permission. A folder here is checked-in source an agent can run locally.
 
 Start a brand-new effect that is not part of `fx` from [`_template/`](_template/). To add a look to this engine, register it in `fx/effects/`, export it from `fx/effects/__init__.py`, add an `e-*` folder, and add a row to the table below.
 
@@ -91,7 +91,7 @@ effects/
 
 ## Run and test
 
-Needs Python 3.10+ and `ffmpeg` / `ffprobe` on `PATH`. From this directory:
+Needs Python 3.10 to 3.14 and `ffmpeg` / `ffprobe` on `PATH`. Python 3.15 does not work yet: `onnxruntime` has no build for it, so the install fails. From this directory:
 
 ```bash
 python -m venv .venv && . .venv/bin/activate

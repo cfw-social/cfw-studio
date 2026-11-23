@@ -2,7 +2,7 @@
 
 A recipe **template** for a talking-head reel with a picture-in-picture speaker. A bot reads it,
 builds its own recipe from it, and tries it. It teaches; it does not run for any brand by itself.
-(Saving the result in a brand's recipe library in CFW Social is planned, not built.)
+(A bot can save the result in a brand's recipe library in CFW Social, with a key made with the "Save its own recipes" permission.)
 
 Based on CFW Social's built-in picture-in-picture reel recipe.
 
@@ -156,7 +156,7 @@ You can ignore these outside CFW Social.
 
 ## 10. Limits and known gaps
 
-- Planned, not built: CFW Social's recipe library for a brand, and the tools to save a recipe in it.
+- Saving a recipe in a brand's library needs a key made with the "Save its own recipes" permission. The tags on posts and a "Your recipes" page in CFW Social are planned, not built.
 - **A scorecard is a record, not proof.** Someone who edits it by hand can make it pass; `check_delivery.py`
   checks the recorded result against the file, not the pictures.
 - The manifest's `needs.os` value says where the steps are expected to work; it is not a record of testing.

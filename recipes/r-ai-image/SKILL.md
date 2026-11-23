@@ -14,8 +14,8 @@ requires: python3, ffmpeg, a Kie key
 
 # AI Image
 
-This is a template. The plan is that a brand's bot reads it, adapts it into its own recipe and
-runs that (the CFW Social tools for saving a brand's own recipe are planned, not built).
+This is a template. A brand's bot reads it, adapts it into its own recipe and
+runs that (the CFW tools for saving a brand's own recipe are live, for a key made with the "Save its own recipes" permission).
 
 Read `steps/_shared.md` before any step. It holds the tool versions, the work-folder layout,
 the key rule and the network list. The recipe spends the brand's own Kie credits, so run

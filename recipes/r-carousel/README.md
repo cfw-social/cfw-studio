@@ -6,7 +6,7 @@ Based on CFW Social's built-in carousel recipe.
 
 A branded image carousel: ordered slide PNGs (3, 5, 7 or 10) at 1080x1350 (portrait) or 1080x1080 (square), plus one caption for each target platform.
 
-This is a template to learn from and adapt. The plan is that a brand's bot reads it, builds its own recipe, and saves that recipe in the brand's recipe library in CFW Social, which then runs it. Those CFW tools are planned, not built (see [../../docs/DESIGN.md](../../docs/DESIGN.md)). Today you can read the steps and follow them by hand or with your own agent.
+This is a template to learn from and adapt. A brand's bot reads it, builds its own recipe, and saves that recipe in the brand's recipe library in CFW Social. The bot then runs its saved recipe. The CFW tools for saving a recipe are live, for a key made with the "Save its own recipes" permission (see [../../docs/DESIGN.md](../../docs/DESIGN.md)). You can also read the steps and follow them by hand or with your own agent.
 
 ## What you need
 
@@ -109,4 +109,4 @@ A few names in this folder belong to CFW Social's order format. If you use this 
 - The gate checks one image per run, so a carousel needs N runs. There is no whole-set check; the bot checks set consistency by eye in step 3.
 - Fonts come from Google Fonts at render time. Without them the text uses system fonts.
 - This edition was run only on macOS, with the versions in the table. `manifest.json` lists Windows and Linux as targets (that is today's order format), but no run on them is recorded here. No run on any bot app is claimed.
-- The CFW Social side (a brand's recipe library, saving and locking) is planned, not built.
+- Saving a brand's own version needs a key made with the "Save its own recipes" permission. The tags that show a post's recipe and template, and a "Your recipes" page in CFW Social, are planned, not built.

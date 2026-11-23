@@ -87,7 +87,7 @@ These replace parts of the earlier decisions. Source: the Studio design plan, re
 
 - A template teaches. The brand's saved recipe is what runs.
 - The bot edits its own recipe alone. When the user likes a version, the bot locks it in and the other drafts go.
-- The CFW tools for this are planned, not built.
+- The CFW tools for this are live in CFW Social. Post tags are planned, not built.
 
 **Why**
 

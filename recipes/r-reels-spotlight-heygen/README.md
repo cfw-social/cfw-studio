@@ -178,5 +178,6 @@ You can ignore these outside CFW Social.
   run start to finish, and its first step has run only against a local fake server.
 - **Everything else** is the base recipe's: stand-in media in its run, no Windows or Linux run, Latin script
   only, the transparent caption render about 160 MB while it exists.
-- **Planned, not built:** the CFW Social tools that let a brand's bot save, try and lock in its own version
-  of this recipe. Until then this template only teaches.
+- **Saving needs a permission:** the CFW Social tools that let a brand's bot save, try and lock in its own
+  version of this recipe work only for a key made with the "Save its own recipes" permission. Post tags and a
+  "Your recipes" page are planned, not built.

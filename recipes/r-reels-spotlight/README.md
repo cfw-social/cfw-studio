@@ -169,5 +169,6 @@ on the tests.
   testing. This edition was run on macOS only. The blocks say Linux and native Windows are not proven.
 - **Language.** Captions and cards are Latin script only (non-Latin words are transliterated, never
   translated). The brand-name guard in `scripts/takeover_brand.py` uses an English word list.
-- **Planned, not built:** the CFW Social tools that let a brand's bot save, try and lock in its own
-  version of this recipe. Until then this template only teaches.
+- **Saving needs a permission:** the CFW Social tools that let a brand's bot save, try and lock in its own
+  version of this recipe work only for a key made with the "Save its own recipes" permission. Post tags and a
+  "Your recipes" page are planned, not built.

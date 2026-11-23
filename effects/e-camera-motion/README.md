@@ -2,7 +2,7 @@
 
 Adds a camera move to a video clip with one ffmpeg command: push in, pull out, pans, slow drift, ken-burns, tilt, orbit, sway, or a clip floating as a card. Pure ffmpeg. No browser, no GPU, no models, no account, no network.
 
-This is an effect **template**. It teaches. A brand's bot reads it, adapts it, and runs it in its own recipe. It does not run for a brand from here. The CFW Social side that saves a brand's recipes is planned, not built. MIT licence, like the rest of this repository.
+This is an effect **template**. It teaches. A brand's bot reads it, adapts it, and runs it in its own recipe. It does not run for a brand from here. A brand's bot can save its own recipes in CFW Social, with a key made with the "Save its own recipes" permission. MIT licence, like the rest of this repository.
 
 It is a standalone effect: it does not use the shared `fx` package.
 

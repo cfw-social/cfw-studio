@@ -2,7 +2,7 @@
 
 Makes one AI still image by calling the Kie API directly (`https://api.kie.ai`) and saves it as a PNG in the work folder. One run is one image and spends Kie credits.
 
-This is a building block **template**. It teaches. A brand's bot reads it, adapts it, and runs it in its own recipe. It does not run for a brand from here. The CFW Social side that saves and locks in a brand's recipes is planned, not built.
+This is a building block **template**. It teaches. A brand's bot reads it, adapts it, and runs it in its own recipe. It does not run for a brand from here. A brand's bot can save and lock in its own recipes in CFW Social, with a key made with the "Save its own recipes" permission.
 
 ## What you need
 

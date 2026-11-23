@@ -6,7 +6,7 @@ Based on CFW Social's built-in AI character recipe.
 
 A character-consistent set of 3 to 6 still images, each exactly 1080x1920 (9:16 portrait), that tell a short visual story in story order. Scene 1 is the cover. It also saves a one-row contact sheet of all scenes. It does not make a video.
 
-This is a template to learn from and adapt. The plan is that a brand's bot reads it, builds its own recipe, and saves that recipe in the brand's recipe library in CFW Social. Those CFW tools are planned, not built (see [../../docs/DESIGN.md](../../docs/DESIGN.md)). Today you can read the steps and follow them by hand or with your own agent.
+This is a template to learn from and adapt. A brand's bot reads it, builds its own recipe, and saves that recipe in the brand's recipe library in CFW Social. The CFW tools for saving a recipe are live, for a key made with the "Save its own recipes" permission (see [../../docs/DESIGN.md](../../docs/DESIGN.md)). You can also read the steps and follow them by hand or with your own agent.
 
 ## 2. What you need
 
