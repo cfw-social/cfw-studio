@@ -83,7 +83,7 @@ args = ['-y', '-protocol_whitelist', 'file', '-i', 'work/assembled-raw.mp4', '-f
         'work/assembled-av.mp4']
 ```
 
-The sound is cut to end 0.03 s before the picture (`A = T - 0.03` above), so no sound overhangs when the frame count is taken.
+The sound is cut to end 0.03 s before the picture (`A = T - 0.03` above), so no sound overhangs when the frame count is taken. This removes at most 30 ms from the end of the sound.
 Then require `python3 "$RECIPE_DIR/scripts/frame_qa.py" av-span work/assembled-av.mp4` to pass. This is the check
 that protects the caption pass from a black tail: it counts the frames the caption pass will render from the real file
 length, with no allowance. It fails if the audio ends more than one AAC frame (21.3 ms) after
