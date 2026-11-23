@@ -4,6 +4,16 @@ The open library of **templates** (recipes, building blocks, and effects) that a
 
 Think of it as a box of Lego. An **effect** is a brick with a look or a sound: a transition, confetti, fireworks, a caption style, an overlay, a sound effect, or a music bed. A **building block** is a reusable piece of work, such as transcribing a video or cutting on sentence boundaries. A **recipe** is the instruction sheet that snaps those pieces together and says what goes in and what comes out. A brand's bot reads these as templates and builds its own recipe from them.
 
+## Names
+
+```text
+r-   a recipe template     recipes/r-<name>/
+b-   a building block      blocks/b-<name>/
+e-   an effect             effects/e-<name>/
+```
+
+A folder name starts with its letter, and the folder name is the template's id.
+
 ## Who it's for
 
 - **Brand bots** that read a template, build their own recipe, and save it in the brand's recipe library in CFW Social.
@@ -31,7 +41,7 @@ The names "templates", "recipe library" and "built-in recipes" are proposed and 
 
 ## What's here today, and what isn't
 
-**Now (this repository):** the design, contribution and reporting guides, scaffolds for `blocks/` and `recipes/`, and a checked-in effects library under [`effects/`](effects/). That library is the Python package `fx`: 24 subject-aware vertical effects, plus `grid_collage` and the utilities `label`, `redact`, and `grade`. Each one is also an `e-*` template with `effect.yaml`, `SKILL.md`, and a synthetic preview. Run and test them as described in [`effects/README.md`](effects/README.md).
+**Now (this repository):** the design, contribution and reporting guides; eight building blocks under [`blocks/`](blocks/) (`b-audio`, `b-broll-sync`, `b-heygen`, `b-hyperframes`, `b-kie-ai`, `b-qa-gate`, `b-reel-premium`, `b-typing-ui`); a scaffold for `recipes/`; and a checked-in effects library under [`effects/`](effects/) with 29 `e-*` effect folders, including `e-camera-motion`. Most of the effects are the Python package `fx`. Each effect has `effect.yaml`, `SKILL.md` and a preview. Run and test them as described in [`effects/README.md`](effects/README.md). Recipe templates under `recipes/` are added separately. A recipe refers to a block by the relative path `../../blocks/b-<name>/`.
 
 **Planned, not built:**
 
@@ -44,14 +54,14 @@ A folder in this repo is a template. It is not, by itself, something that runs i
 
 ## Roadmap
 
-1. **Now:** safe repo, docs, effects library.
-2. **Next:** move the recipes that run in CFW today into this repo as templates, one pull request each.
+1. **Now:** safe repo, docs, effects library, eight building blocks.
+2. **Next:** add the recipe templates under `recipes/`: move the recipes that run in CFW today into this repo as templates, one pull request each.
 3. **Then:** the brand recipe library and bot tools in CFW, and the bot guide.
 4. **Later:** the block and recipe file format.
 
 ## Get started
 
-- Browse [`effects/`](effects/) for the checked-in looks (see the inventory in [`effects/README.md`](effects/README.md)), and [`blocks/`](blocks/) and [`recipes/`](recipes/) for scaffolds. Each area has a `_template/` to copy.
+- Browse [`effects/`](effects/) for the checked-in looks (see the inventory in [`effects/README.md`](effects/README.md)), [`blocks/`](blocks/) for the building blocks, and [`recipes/`](recipes/) for the scaffold. Each area has a `_template/` to copy.
 - To contribute, read [CONTRIBUTING.md](CONTRIBUTING.md) and open a pull request with your piece, any new blocks or effects it needs, and a sample run.
 - If a template fails or is wrong, read [docs/REPORTING.md](docs/REPORTING.md) and file an issue.
 - To understand the model, start with [docs/DESIGN.md](docs/DESIGN.md). Coding agents should read [AGENTS.md](AGENTS.md) first.

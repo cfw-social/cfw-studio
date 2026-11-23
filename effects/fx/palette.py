@@ -10,14 +10,14 @@ or by swatch name or by literal hex.
 import json, os
 
 PRESETS = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "presets")
-DEFAULT_PRESET = os.environ.get("FX_PALETTE", "vasanth-personal")
+DEFAULT_PRESET = os.environ.get("FX_PALETTE", "navy-amber")
 
 def list_presets():
     return sorted(f[:-5] for f in os.listdir(PRESETS) if f.endswith(".json")) if os.path.isdir(PRESETS) else []
 
-# Built-in fallback (identical to presets/vasanth-personal.json) so the package works without the presets folder.
+# Built-in fallback (identical to presets/navy-amber.json) so the package works without the presets folder.
 DEFAULT_PALETTE = {
-    "name": "vasanth-personal",
+    "name": "navy-amber",
     "swatches": {"navy": "#0C1842", "periwinkle": "#6962EE", "offwhite": "#FDFDFC",
                  "amber": "#FDA107", "redorange": "#F44C2D"},
     "roles": {"bg": "navy", "outline": "navy", "text": "offwhite", "paper": "offwhite",

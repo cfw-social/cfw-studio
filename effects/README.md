@@ -19,7 +19,7 @@ Dependencies below are installed from PyPI or downloaded separately. They keep t
 
 ## Checked-in effects
 
-Twenty-four subject-aware effects, plus `grid_collage` and the utilities `label`, `redact`, and `grade`. `fx_name` in `effect.yaml` is the name `python -m fx apply --effect` expects. Samples are 360×640 renders of the procedural mannequin.
+Twenty-four subject-aware effects, plus `grid_collage` and the utilities `label`, `redact`, and `grade`. `fx_name` in `effect.yaml` is the name `python -m fx apply --effect` expects. Samples are 360×640 renders of the procedural mannequin. That makes 28 `fx` effects, plus one standalone effect below: 29 `e-*` folders.
 
 | Effect | `fx` name | Layer | What it does | Sample |
 | --- | --- | --- | --- | --- |
@@ -53,6 +53,14 @@ Twenty-four subject-aware effects, plus `grid_collage` and the utilities `label`
 | [e-grade](e-grade/) | `grade` | full frame | Light global contrast, saturation, warmth, and lift. | [grade.mp4](examples/samples/grade.mp4) |
 
 `orbit`, `phone_fan`, `profile_wall`, and `grid_collage` take `clips` (paths or `{"src", "in", "dur"}`). With no clips they use delayed copies of the current clip. Chat, phone, feed, camera, and tier-board chrome are generic drawings.
+
+### Standalone effects
+
+These do not use the `fx` package. Each has its own script, declared in its `effect.yaml` with `engine: standalone`, and its own sample.
+
+| Effect | Layer | What it does | Sample |
+| --- | --- | --- | --- |
+| [e-camera-motion](e-camera-motion/) | full frame | One-command camera moves with ffmpeg: push in, pull out, pans, slow drift, tilt, orbit, sway, or a floating card. | [camera_motion.mp4](examples/samples/camera_motion.mp4) |
 
 The compositing order inside `fx` is:
 
@@ -162,7 +170,7 @@ Register a new effect with `@fx.register("name", defaults={...})` on `fn(ctx, pa
 
 Presets in `presets/` are JSON: `swatches` (name to hex) and `roles` (role to swatch or hex). Effects ask for `bg, outline, text, paper, accent, punch, glow, secondary, note, hot, split`. A colour param also accepts a swatch name or `#hex`.
 
-Included: `vasanth-personal` (default example palette) and `neutral-mono`. Flat caption palettes (`{"primary": "#..", "punch": "#..", "outline": "#.."}`) are accepted. Set `FX_PALETTE` to change the default.
+Included: `navy-amber` (default example palette) and `neutral-mono`. Flat caption palettes (`{"primary": "#..", "punch": "#..", "outline": "#.."}`) are accepted. Set `FX_PALETTE` to change the default.
 
 ## Segmentation
 

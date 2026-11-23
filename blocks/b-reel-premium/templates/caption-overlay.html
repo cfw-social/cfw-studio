@@ -1,0 +1,166 @@
+<template id="caption-overlay-template">
+  <!--
+    Kinetic caption overlay. Filled by scripts/build_comp.py, never written by hand.
+    One caption group is visible at a time. Each word brightens when it is spoken.
+    The one emphasis word in a group pops in the accent colour. The entrance style
+    (0, 1 or 2) is set by the plan. No random numbers: every group is hidden at its end time.
+
+    Placeholders, filled in one pass by the script:
+      DURATION    reel length in seconds (a number)
+      CAP_TOP     top edge of the caption band in pixels (an integer)
+      ACCENT      accent colour, seven characters: hash and six hex digits
+      FG          text colour, same shape
+      FONT_FACE   either nothing, or one font-face rule for a local font file
+      FONT_STACK  the font-family value: a generic family, or the declared local font first
+      FONT_NAME   the family name given to the text-fitting helper
+      TIMELINE_JS the tween calls, one per group and word, written out with plain numbers
+                  (no loop, so the renderer's lint can read every start time)
+      GROUPS_JSON the caption groups as script-safe JSON. Every character that is not
+                  a letter, digit or space inside a string is written as a unicode escape,
+                  so caption text can never end the script or read as markup.
+    Caption text is only ever put on the page with textContent.
+  -->
+  <div
+    id="caption-overlay"
+    data-composition-id="caption-overlay"
+    data-width="1080"
+    data-height="1920"
+  >
+    <style>
+      {{FONT_FACE}}
+      #caption-overlay {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: transparent;
+        font-family: {{FONT_STACK}};
+      }
+      #caption-overlay .cap-group {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: {{CAP_TOP}}px;
+        height: 260px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        column-gap: 0.42em;
+        row-gap: 0.05em;
+        padding: 0 60px;
+        text-align: center;
+        opacity: 0;
+        overflow: visible;
+      }
+      #caption-overlay .cap-word {
+        display: inline-block;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.01em;
+        line-height: 1.04;
+        color: {{FG}};
+        opacity: 0.42;
+        text-shadow: 0 4px 24px rgba(0, 0, 0, 0.75);
+        will-change: transform, opacity;
+      }
+      #caption-overlay .cap-word.em {
+        font-weight: 700;
+        /* Until it is spoken the emphasis word looks like its neighbours. The pop grows
+           its font size through --pop, so the line reflows and no gap closes or widens. */
+        font-size: calc(1em * var(--pop, 1));
+      }
+    </style>
+
+    <script src="gsap.min.js"></script>
+    <script>
+      window.__timelines = window.__timelines || {};
+
+      var GROUPS = {{GROUPS_JSON}};
+      var ACCENT = "{{ACCENT}}";
+      var FG = "{{FG}}";
+      var FONT_NAME = "{{FONT_NAME}}";
+
+      var root = document.getElementById("caption-overlay");
+
+      /* Build every group when the page loads, before the renderer reads the timeline. */
+      GROUPS.forEach(function (group, gi) {
+        var g = document.createElement("div");
+        g.className = "cap-group";
+        g.id = "cg-" + gi;
+        var text = group.words.map(function (w) { return w.w; }).join(" ");
+        var fit = window.__hyperframes && window.__hyperframes.fitTextFontSize
+          ? window.__hyperframes.fitTextFontSize(text.toUpperCase(), {
+              fontFamily: FONT_NAME,
+              fontWeight: 700,
+              maxWidth: 760,
+              baseFontSize: 88,
+              minFontSize: 48,
+            })
+          : { fontSize: 72 };
+        g.style.fontSize = fit.fontSize + "px";
+        group.words.forEach(function (w, wi) {
+          var s = document.createElement("span");
+          s.className = "cap-word" + (w.em ? " em" : "");
+          s.id = "cw-" + gi + "-" + wi;
+          s.textContent = w.w;
+          g.appendChild(s);
+        });
+        root.appendChild(g);
+      });
+
+      /* The first fit uses plain spaces and 760 px. The real line has wider gaps and its
+         emphasis word grows to POP_PEAK. Shrink (never grow) a group until the whole line at
+         the peak fits the 900 px safe width, so it does not wrap while it pops. Refit once
+         the fonts have loaded. */
+      var POP_TO = 1.12, POP_SETTLE = 1.06, POP_BACK = 1.7, POP_EASE = "back.out(" + POP_BACK + ")";
+      var POP_PEAK = (function () {
+        var most = 1;
+        for (var i = 0; i <= 400; i++) {
+          var q = i / 400 - 1;
+          most = Math.max(most, 1 + (POP_BACK + 1) * q * q * q + POP_BACK * q * q);
+        }
+        return 1 + (POP_TO - 1) * most;
+      })();
+      var GAP_EM = 0.42, SAFE_W = 900, BASE_SIZES = [];
+      function fitLines() {
+        GROUPS.forEach(function (group, gi) {
+          var g = document.getElementById("cg-" + gi);
+          if (!g) return;
+          if (BASE_SIZES[gi] === undefined) BASE_SIZES[gi] = parseFloat(g.style.fontSize) || 72;
+          var size = BASE_SIZES[gi];
+          g.style.fontSize = size + "px";
+          var need = Math.max(0, group.words.length - 1) * GAP_EM * size;
+          group.words.forEach(function (w, wi) {
+            var s = document.getElementById("cw-" + gi + "-" + wi);
+            var pop = parseFloat(s.style.getPropertyValue("--pop")) || 1;
+            need += (s.offsetWidth / pop) * (w.em ? POP_PEAK : 1);
+          });
+          if (need > SAFE_W) g.style.fontSize = Math.max(24, Math.floor(size * SAFE_W / need)) + "px";
+        });
+      }
+      fitLines();
+      if (document.fonts && document.fonts.ready) { document.fonts.ready.then(fitLines); }
+
+      var tl = gsap.timeline({ paused: true });
+
+      {{TIMELINE_JS}}
+
+      /* Self-check: every group must be gone just after its end time. Use the bare
+         getComputedStyle, not the window one: inside a sub-composition the window object
+         is a proxy that does not bind its methods. */
+      GROUPS.forEach(function (group, gi) {
+        var el = document.getElementById("cg-" + gi);
+        if (!el) return;
+        tl.seek(Math.min(group.end + 0.01, {{DURATION}}));
+        var c = getComputedStyle(el);
+        if (c.opacity !== "0" && c.visibility !== "hidden") {
+          console.warn("caption group " + gi + " is still visible after its end time");
+        }
+      });
+      tl.seek(0);
+
+      window.__timelines["caption-overlay"] = tl;
+    </script>
+  </div>
+</template>

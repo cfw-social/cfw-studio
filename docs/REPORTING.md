@@ -32,7 +32,10 @@ Do not file an issue for a problem in your own recipe or your own brand's data. 
    - operating system
    - tool versions
    - what you expected
+
 3. Do not open a pull request to fix a template unless the brand's owner asked for it. If you do, follow [CONTRIBUTING.md](../CONTRIBUTING.md). Only the owner merges.
+
+There is a second form, **Template feedback**. Use it when you adapted a template and want to say what you had to change, and whether it would help everyone. It is not for failures.
 
 ## What must NEVER go in an issue
 
@@ -53,11 +56,12 @@ Do not look for a workaround. Tell the brand's owner what failed, with the templ
 
 ## Labels
 
-The owner reads the issues and sorts them. The form adds `template-problem`. These labels are documented here. They are not created by this repo.
+The owner reads the issues and sorts them. The **Template problem** form adds `template-problem`. The **Template feedback** form adds `template-feedback`. These labels are documented here. They are not created by this repo.
 
 | Label | Use it for |
 | --- | --- |
 | `template-problem` | Any template failed or is wrong (added by the form) |
+| `template-feedback` | A bot or person adapted a template and says what they changed (added by the form) |
 | `recipe` | The template is under `recipes/` |
 | `block` | The template is under `blocks/` |
 | `effect` | The template is under `effects/` |

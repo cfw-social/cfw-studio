@@ -1,4 +1,4 @@
-# p-your-recipe
+# r-your-recipe
 
 Replace this template when you add a real recipe. This file is the guiding document: when to use the recipe, how the blocks fit, and any coordination the agent needs.
 

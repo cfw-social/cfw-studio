@@ -1,9 +1,11 @@
-"""Catalog checks for the checked-in fx effects.
+"""Catalog checks for the checked-in effects.
 
-Every registered effect has one e-* folder, the README lists it, and the
+Every registered fx effect has one e-* folder (a standalone effect, with
+`engine: standalone`, has its own script and sample instead of an fx name), the README lists it, and the
 tree contains no private brand media links.
 """
 import os
+import re
 from pathlib import Path
 
 import fx
@@ -48,6 +50,17 @@ def test_every_effect_has_a_catalog_entry():
         assert manifest["id"] == folder.name
         assert manifest["kind"] == "effect"
         assert manifest["variation"] == "default"
+        if manifest.get("engine") == "standalone":
+            # A standalone effect has its own script and sample and is not in the fx registry.
+            assert "fx_name" not in manifest, folder.name
+            for rel in ("SKILL.md", "PREVIEW.md", "scripts/README.md"):
+                assert (folder / rel).is_file(), (folder.name, rel)
+            scripts = [p for p in (folder / "scripts").glob("*.py")]
+            assert scripts, folder.name
+            sample = re.search(r"\]\((\.\./examples/samples/[^)]+\.mp4)\)", (folder / "PREVIEW.md").read_text())
+            assert sample, folder.name
+            assert (folder / sample.group(1)).is_file(), (folder.name, sample.group(1))
+            continue
         fx_name = manifest["fx_name"]
         assert fx_name in registered, fx_name
         assert fx_name not in by_fx

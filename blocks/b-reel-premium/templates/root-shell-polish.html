@@ -1,0 +1,67 @@
+<!doctype html>
+<!--
+  Root page for the caption pass. Filled by scripts/build_comp.py, never written by hand.
+  It holds only the caption overlay, on a transparent background, and is rendered to a
+  transparent video (a mov with an alpha channel). scripts/mux.py lays that video over the
+  graded reel, so the footage never goes through the renderer and the captions keep their
+  exact colours. The reel's audio and the sound effects are handled by scripts/mux.py.
+  It must stay a full document, not a fragment, so the renderer can add its own scripts.
+  Placeholder: DURATION (seconds, a number).
+  Keep this comment free of tags and of placeholder tokens.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: transparent;
+      }
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: transparent;
+      }
+      #root .caption-slot {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="premium-polish"
+      data-start="0"
+      data-duration="{{DURATION}}"
+      data-width="1080"
+      data-height="1920"
+    >
+      <div
+        id="captions"
+        class="caption-slot"
+        data-composition-id="caption-overlay"
+        data-composition-src="compositions/caption-overlay.html"
+        data-start="0"
+        data-duration="{{DURATION}}"
+        data-width="1080"
+        data-height="1920"
+        data-track-index="9"
+      ></div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["premium-polish"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

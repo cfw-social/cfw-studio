@@ -23,7 +23,7 @@ inputs:
     type: text
     required: false
     cardinality: one
-    description: Preset name (neutral-mono or vasanth-personal), a path to palette JSON, or inline palette JSON.
+    description: Preset name (neutral-mono or navy-amber), a path to palette JSON, or inline palette JSON.
 
 outputs:
   - id: treated_clip

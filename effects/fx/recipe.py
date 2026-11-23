@@ -2,7 +2,7 @@
 
 {
   "out": "reel.mp4", "size": [1080, 1920], "fps": 30,
-  "palette": "palette.json" | {...},                    # optional; default Vasanth personal palette
+  "palette": "palette.json" | {...},                    # optional; default navy-amber palette
   "seg": {"backend": "ensemble", "temporal_sigma": 1.2}, # optional
   "save_segments": "segments/",                       # optional: also write each segment (lets a later grid_collage reuse them)
   "segments": [

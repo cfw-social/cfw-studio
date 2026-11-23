@@ -10,7 +10,7 @@ body:
     id: template
     attributes:
       label: Template name
-      description: The folder name, for example p-something, c-something or e-something.
+      description: The folder name, for example r-something, b-something or e-something.
     validations:
       required: true
   - type: input

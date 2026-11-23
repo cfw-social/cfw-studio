@@ -1,4 +1,4 @@
-# c-your-block
+# b-your-block
 
 Replace this template when you add a real block. Write instructions an agent can follow without credentials or private local paths.
 

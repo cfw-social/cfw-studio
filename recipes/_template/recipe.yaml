@@ -1,10 +1,10 @@
 # Proposed template. This schema is not finalized, and CI does not validate it yet.
-id: p-your-recipe
+id: r-your-recipe
 label: Short marketplace name
 summary: One sentence on what this recipe produces.
 
 blocks:
-  - id: c-your-block
+  - id: b-your-block
     variation: default
 
 # Inputs should be the union of the listed blocks' required inputs,

@@ -14,7 +14,7 @@ The names "templates", "recipe library" and "built-in recipes" are proposed. The
 
 ## What exists and what does not
 
-- Exists: this repo, with the `effects/` library (Python package `fx`) and scaffolds for `blocks/` and `recipes/`.
+- Exists: this repo, with eight building blocks under `blocks/`, the `effects/` library (29 `e-*` folders, mostly the Python package `fx`) and a scaffold for `recipes/`. Recipe templates under `recipes/` are added separately. A recipe refers to a block by the relative path `../../blocks/b-<name>/`.
 - Planned, not built: the CFW tools that let a bot save, try, lock in and remove recipes in its brand recipe library, and the tags that show a post's recipe and template.
 - There is no sync from this repo into CFW. Merging here does not change what runs for any brand.
 

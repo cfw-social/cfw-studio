@@ -4,6 +4,14 @@
 
 (One or two sentences. Name the template.)
 
+## Improve first
+
+- Does this add a new block, recipe or effect? (yes / no)
+- If yes: which existing one did you try to extend, and why could it not be extended?
+- For a new block: which two recipes call it?
+- Which issue does this fix or answer?
+- What test did you add?
+
 ## Vetting checklist
 
 - [ ] 1. Every script file is read in full.
