@@ -14,9 +14,10 @@ The names "templates", "recipe library" and "built-in recipes" are proposed. The
 
 ## What exists and what does not
 
-- Exists: this repo, with eight building blocks under `blocks/`, the `effects/` library (29 `e-*` folders, mostly the Python package `fx`) and a scaffold for `recipes/`. Recipe templates under `recipes/` are added separately. A recipe refers to a block by the relative path `../../blocks/b-<name>/`.
+- Exists: this repo, with eight building blocks under `blocks/`, the `effects/` library (29 `e-*` folders, mostly the Python package `fx`) and ten recipe templates under `recipes/`. A recipe refers to a block by the relative path `../../blocks/b-<name>/`.
 - Built: a brand recipe library in CFW Social. A brand's own recipe name starts with `my-`. Six tools on the bot's render connection (`list_my_recipes`, `check_recipe_save`, `upload_recipe_files`, `save_recipe_draft`, `lock_in_recipe`, `remove_recipe`) let a bot list, check, upload, save, lock in and remove them. They work only for a key made with the "Save its own recipes" permission, which is off unless the person ticks it. Limits: 20 recipes per brand and 10 open drafts per recipe.
-- Planned, not built: tags on posts that show the brand recipe and the template it came from, a "Your recipes" page in CFW Social, and the CFW Studio page of the bot guide (being written).
+- Built: the CFW bot guide teaches this loop. A bot starts at `https://app.cfw.social/assets/bot-setup.md`. Saving, trying and locking in are on `https://app.cfw.social/assets/bot-studio.md`.
+- Planned, not built: tags on posts that show the brand recipe and the template it came from, and a "Your recipes" page in CFW Social.
 - There is no sync from this repo into CFW. Merging here does not change what runs for any brand.
 
 ## Start here
