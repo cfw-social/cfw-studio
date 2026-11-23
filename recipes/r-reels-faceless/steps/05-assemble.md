@@ -83,8 +83,10 @@ args = ['-y', '-protocol_whitelist', 'file', '-i', 'work/assembled-raw.mp4', '-f
         'work/assembled-av.mp4']
 ```
 
+The sound is cut to end 0.03 s before the picture (`A = T - 0.03` above), so no sound overhangs when the frame count is taken.
 Then require `python3 "$RECIPE_DIR/scripts/frame_qa.py" av-span work/assembled-av.mp4` to pass. This is the check
-that protects the caption pass from a black tail. It fails if the audio ends more than one AAC frame (21.3 ms) after
+that protects the caption pass from a black tail: it counts the frames the caption pass will render from the real file
+length, with no allowance. It fails if the audio ends more than one AAC frame (21.3 ms) after
 the picture: an AAC stream is built from whole 1024-sample frames, so an exact cut still ends up to one frame later,
 but any longer overhang is real sound past the picture. If it fails, pad the picture or cut the sound again with the
 command above; do not loosen the check.
@@ -99,7 +101,7 @@ other model, no nested agent). Read `"$BLOCKS_DIR/b-reel-premium/README.md"` for
 - `brand`: `accent` and `fg` as six hex digits (the palette's `ACCENT` and `CAP_FG`). A brand font file
   goes in as `brand.font_file` (inside `inputs/`); with none, captions use the generic sans-serif.
 - `caption_groups`: every group holds 2 to 4 words. The only exception is the last group, which may hold one
-  word that cannot join the group before it. Break a group at a sentence end or a pause of 150 ms or more only
+  word, and only when it cannot join the group before it: that is, only after a group of 4 words. Break a group at a sentence end or a pause of 150 ms or more only
   when both sides keep at least 2 words; never leave a word alone, let it join the neighbour. (The plan checker
   in the block accepts 1 to 8 words, so run `check_captions.py` below as well.) In time order, not
   overlapping, each word with its exact transcript
@@ -157,8 +159,11 @@ python3 "$RECIPE_DIR/scripts/frame_qa.py" av-span saves/assembled_video.mp4 --af
 python3 "$RECIPE_DIR/scripts/frame_qa.py" tail-luma saves/assembled_video.mp4 --min 26
 ```
 
-Two notes on those guards. `--after-captions` skips the black-tail frame count, which only matters before the caption pass (the check above on `work/assembled-av.mp4`). The loudness master re-encodes the sound as AAC, which ends up to one AAC frame (21.3 ms)
-after the picture; `av-span` allows that and nothing more. `tail-luma --min 26`: a dark brand canvas is lifted only
+Notes on those guards. `--after-captions` is used only here and in step 6, once the captions are rendered: it skips the
+black-tail frame count (no caption pass follows, so a file a few milliseconds past a whole number of frames would be
+flagged for a frame that is never rendered). It does not relax the sound check: a real overhang still fails. The loudness master cuts the sound to the picture and re-encodes it as AAC, which ends up to one AAC frame (21.3 ms)
+after the picture; the sound check allows that and nothing more. The master itself fails (exit 1) if the sound is more
+than 0.1 s longer than the picture, so real sound is never cut silently. `tail-luma --min 26`: a dark brand canvas is lifted only
 to luma 24, so a lit closing card measures in the high 20s to 30s; 26 still catches a black or faded end (the
 gate's own not-black floor is 16).
 

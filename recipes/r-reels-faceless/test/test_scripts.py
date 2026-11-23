@@ -783,6 +783,58 @@ class AacOverhang(Base):
             self.assertIn("more than one AAC frame", r.stdout)
         self.assertIn("--after-captions", slurp(os.path.join(STEPS, "06-final-checks.md")))
 
+    def test_picture_3_000_sound_3_020_is_a_real_black_tail_frame(self):
+        """The caption pass sizes itself from the real file length: ceil(3.02 x 30) = 91 frames for a 90-frame picture."""
+        self.make("edge.mp4", 3.0, 3.02)
+        r = qa("av-span", os.path.join(self.tmp, "edge.mp4"))
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertEqual(json.loads(r.stdout.splitlines()[0])["blank_tail_frames"], 1)
+        self.assertIn("black tail", r.stdout)
+        # --after-captions exists for a file with no caption pass still to come: the frame count is skipped, and
+        # the sound check still allows exactly one AAC frame of overhang.
+        r = qa("av-span", os.path.join(self.tmp, "edge.mp4"), "--after-captions")
+        self.assertEqual(r.returncode, 0, r.stdout)
+
+    def test_after_captions_cannot_pass_a_real_overhang(self):
+        for sound in (3.03, 3.1, 4.0):
+            self.make("over.mp4", 3.0, sound)
+            r = qa("av-span", os.path.join(self.tmp, "over.mp4"), "--after-captions")
+            self.assertEqual(r.returncode, 1, "%s: %s" % (sound, r.stdout))
+            self.assertIn("more than one AAC frame", r.stdout)
+
+    def test_a_good_pre_caption_file_has_no_overhang_and_passes_strictly(self):
+        """Step 5 cuts the sound to end before the picture; the strict check then has nothing to flag."""
+        self.make("src.mp4", 3.0, 3.0)
+        ff("-i", os.path.join(self.tmp, "src.mp4"), "-filter_complex",
+           "[0:v]trim=duration=3.0,setpts=PTS-STARTPTS[v];[0:a]apad,atrim=duration=2.97,asetpts=PTS-STARTPTS[a]",
+           "-map", "[v]", "-map", "[a]", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", os.path.join(self.tmp, "good.mp4"))
+        r = qa("av-span", os.path.join(self.tmp, "good.mp4"))
+        self.assertEqual(r.returncode, 0, r.stdout)
+
+    def test_master_refuses_real_sound_past_the_picture_and_cuts_only_a_small_tail(self):
+        self.make("tail.mp4", 3.0, 4.0)
+        r = script("master_loudness.py", "--in", "tail.mp4", "--out", "m.mp4", cwd=self.tmp)
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("longer than the picture", r.stderr)
+        self.assertNotIn("mastered", r.stdout)
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertFalse(os.path.exists(os.path.join(self.tmp, "m.mp4")))
+        self.make("small.mp4", 3.0, 3.08)
+        r = script("master_loudness.py", "--in", "small.mp4", "--out", "m2.mp4", cwd=self.tmp)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertEqual(qa("av-span", os.path.join(self.tmp, "m2.mp4"), "--after-captions").returncode, 0)
+
+    def test_master_with_no_video_or_no_audio_is_a_plain_failure(self):
+        ff("-f", "lavfi", "-i", "sine=f=220:d=2", "-c:a", "aac", os.path.join(self.tmp, "audio-only.mp4"))
+        ff("-f", "lavfi", "-i", "testsrc2=s=320x568:r=30:d=2", "-c:v", "libx264", "-pix_fmt", "yuv420p", os.path.join(self.tmp, "silent.mp4"))
+        for name, word in (("audio-only.mp4", "no video stream"), ("silent.mp4", None)):
+            r = script("master_loudness.py", "--in", name, "--out", "o.mp4", cwd=self.tmp)
+            self.assertEqual(r.returncode, 1, name + r.stdout + r.stderr)
+            self.assertIn("FAILED -", r.stderr, name)
+            self.assertNotIn("Traceback", r.stderr)
+            if word:
+                self.assertIn(word, r.stderr)
+
     def test_tail_luma_default_floor_is_26(self):
         self.assertIn("default=26.0", slurp(FRAME_QA))
 
@@ -797,9 +849,13 @@ class CaptionGroups(Base):
         jdump(self.plan(sizes), os.path.join(self.tmp, "plan.json"))
         return script("check_captions.py", "--plan", "plan.json", cwd=self.tmp)
 
-    def test_two_to_four_words_pass_and_only_the_last_may_be_one(self):
+    def test_two_to_four_words_pass_and_a_last_single_word_only_after_four(self):
         self.assertEqual(self.run_check([2, 3, 4, 2]).returncode, 0)
-        self.assertEqual(self.run_check([3, 3, 1]).returncode, 0)
+        self.assertEqual(self.run_check([3, 4, 1]).returncode, 0)
+        r = self.run_check([2, 2, 1])
+        self.assertEqual(r.returncode, 1, "the word could join the group before it: " + r.stdout)
+        self.assertIn("could join group 1", r.stdout)
+        self.assertEqual(self.run_check([3, 3, 1]).returncode, 1)
 
     def test_a_single_word_in_the_middle_or_a_long_group_fails(self):
         r = self.run_check([3, 1, 3])
@@ -808,6 +864,13 @@ class CaptionGroups(Base):
         self.assertEqual(self.run_check([1, 1, 1, 1, 1, 1, 3]).returncode, 1)
         self.assertEqual(self.run_check([3, 5, 2]).returncode, 1)
         self.assertEqual(self.run_check([3, 0]).returncode, 1)
+        r = self.run_check([3, 0, 3])
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("group 1 is empty", r.stdout)
+        self.assertNotIn("one word", r.stdout)
+        r = self.run_check([1])
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertIn("only group", r.stdout)
 
     def test_bad_plan_paths(self):
         self.assertEqual(script("check_captions.py", "--plan", "../x.json", cwd=self.tmp).returncode, 2)
@@ -817,6 +880,7 @@ class CaptionGroups(Base):
     def test_the_step_states_the_same_rule(self):
         text = slurp(os.path.join(STEPS, "05-assemble.md"))
         self.assertIn("every group holds 2 to 4 words", text)
+        self.assertIn("only after a group of 4 words", text)
         self.assertIn("check_captions.py", text)
         self.assertNotIn("up to 6", text)
 

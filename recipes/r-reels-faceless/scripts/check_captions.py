@@ -5,7 +5,8 @@
 
 The rule (the one rule; the step text says the same):
   * every caption group holds 2 to 4 words;
-  * the only exception is the LAST group, which may hold 1 word when that word cannot join the group before it;
+  * the only exception is the LAST group, which may hold 1 word, and only when it could not join the group before
+    it, that is when the group before it already holds 4 words. A plan that is a single 1-word group fails;
   * a pause of 150 ms or more, or a sentence end, is a place to break a group only when both sides keep at least
     2 words. A break that would leave one word on its own is not made: the word joins the neighbour.
 This prints every group that breaks the rule and exits 1. b-reel-premium's check_plan.py accepts 1 to 8 words, so
@@ -25,19 +26,30 @@ def check(plan):
         return ["the plan has no caption_groups"]
     problems = []
     last = len(groups) - 1
+    counts = []
     for i, g in enumerate(groups):
         words = g.get("words") if isinstance(g, dict) else None
         if not isinstance(words, list):
             problems.append("group %d has no words list" % i)
+            counts.append(None)
             continue
-        n = len(words)
-        if n > 4:
-            problems.append("group %d has %d words; at most 4" % (i, n))
-        elif n < 2 and i != last:
-            first = words[0].get("w", "?") if n and isinstance(words[0], dict) else "?"
-            problems.append("group %d is the one word %r on its own; only the last group may be a single word" % (i, str(first)[:20]))
-        elif n < 1:
+        counts.append(len(words))
+    for i, n in enumerate(counts):
+        if n is None:
+            continue
+        if n == 0:
             problems.append("group %d is empty" % i)
+        elif n > 4:
+            problems.append("group %d has %d words; at most 4" % (i, n))
+        elif n == 1:
+            first = groups[i]["words"][0].get("w", "?") if isinstance(groups[i]["words"][0], dict) else "?"
+            if i != last:
+                problems.append("group %d is the one word %r on its own; only the last group may be a single word" % (i, str(first)[:20]))
+            elif i == 0:
+                problems.append("the only group is the one word %r" % str(first)[:20])
+            elif counts[i - 1] is not None and counts[i - 1] < 4:
+                problems.append("the last group is the one word %r but could join group %d, which holds %d words (a 1-word last "
+                                "group is allowed only after a 4-word group)" % (str(first)[:20], i - 1, counts[i - 1]))
     return problems
 
 
@@ -61,7 +73,7 @@ def main(argv=None):
         print("FAIL captions: " + p)
     if problems:
         return 1
-    print("PASS captions: %d groups, each 2 to 4 words (the last may be 1)" % len(plan["caption_groups"]))
+    print("PASS captions: %d groups, each 2 to 4 words (a last single word only after a 4-word group)" % len(plan["caption_groups"]))
     return 0
 
 

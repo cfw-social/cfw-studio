@@ -142,6 +142,7 @@ A few names in this folder belong to CFW Social's order format. If you use this 
 - Text with a web address (`https:`, `//host`, `url(`) is refused in cards and in the block fillers, because the local-only check cannot tell a sentence from a link. Write `example.com`.
 - `frame_qa.py band-scan` skips b-roll beats, so it cannot see a caption layer lost over moving footage; look at the b-roll windows.
 - The headline of a `hook` or `typing` scene is not drawn (those cards show their own text).
+- Two thresholds worth knowing: `frame_qa.py tail-luma` uses a floor of 26 (a dark brand canvas is lifted only to luma 24, so 30 failed a lit closing card; 26 still catches a black or faded end, and the gate's own not-black floor is 16), and `av-span` allows the sound to end one AAC frame (21.3 ms) after the picture, because an AAC encode is built from whole 1024-sample frames and cannot end inside one. Longer overhang fails, and the loudness master refuses sound more than 0.1 s longer than the picture instead of cutting it.
 - A scorecard is a record, not proof: someone who edits it by hand can make it pass. `deliver_final.py` stops a skipped, unfinalized or stale gate, not a forged scorecard.
 - The ghost-glyph and hero looks judge only the card types meant to have them (see step 6); a reel made only of hook and typing cards answers them "yes, not applicable".
 - The tests prove the helper scripts, the filler's escaping and the page checks on small made-up clips. They do not prove how a card looks in a real render.

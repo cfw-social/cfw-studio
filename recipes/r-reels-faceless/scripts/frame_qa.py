@@ -6,9 +6,10 @@ Each subcommand prints what it measured and exits 1 when the picture fails (2 = 
   av-target FILE              The frame-aligned end time (a multiple of 0.1 s) both streams are padded to.
   av-span FILE                FAIL when the caption pass would outlast the picture, or the audio ends more than one
                               AAC frame (21.3 ms, the padding of any AAC encode) after the picture.
-                              With --after-captions only the sound check runs: once the captions are rendered no
-                              frame is rendered past the picture, so the frame count would only complain about a
-                              few milliseconds of picture length. It sizes its HyperFrames
+                              With --after-captions (only once the captions are rendered) the frame count is skipped:
+                              no caption pass follows, so a file whose real length is a few ms past a whole number
+                              of frames (for example 33.005 s) would be flagged for a frame that is never rendered.
+                              The sound check still applies, so a real black tail or long overhang still fails. It sizes its HyperFrames
                               composition from the FORMAT duration (audio included), rounded to 0.01 s, and
                               renders ceil(dur x 30) frames. HyperFrames shows a blank frame once the reel's
                               own frames run out before the composition ends (videoFrameExtractor.ts, 0.7.5:
@@ -136,8 +137,9 @@ def is_graphics(b):
 
 # AAC is coded in whole frames of 1024 samples (21.3 ms at 48 kHz), so an AAC re-encode (the loudness master, the
 # cover concat) cannot end inside a frame: the audio stream ends up to one frame after the picture even when
-# the content is cut exactly. That is not sound outlasting the picture, so av-span allows one frame of overhang
-# and no more. Anything longer is real audio past the picture and fails.
+# the content is cut exactly. The audio-versus-picture check therefore allows one frame of overhang and no more;
+# anything longer is real audio past the picture and fails. The black-tail frame count is NOT relaxed: it uses the
+# real file length, because that is what the caption pass sizes itself from.
 AAC_FRAME = 1024 / 48000.0 + 0.001
 
 
@@ -148,8 +150,6 @@ def av_numbers(path, fps=FPS):
     a_end = stream_end(info, "audio")
     if v_end is None:
         raise Bad("%s has no video stream" % path)
-    if a_end is not None and 0 < a_end - v_end <= AAC_FRAME:
-        fmt = v_end                                          # only the last AAC frame's padding: not real sound
     p2_dur = round(fmt, 2)                                   # caption pass: round(format duration, 2)
     p2_frames = int(math.ceil(p2_dur * fps - 1e-6))          # HyperFrames: ceil(duration x fps)
     video_frames = int(round(v_end * fps))                   # frames the reel can supply from t = 0
@@ -436,8 +436,9 @@ def main(argv=None):
     s = sub.add_parser("av-target"); s.add_argument("file"); s.set_defaults(fn=cmd_av_target)
     s = sub.add_parser("av-span"); s.add_argument("file")
     s.add_argument("--after-captions", action="store_true",
-                   help="the caption pass is already done: skip the black-tail frame count (a few ms of picture length "
-                        "is not a frame to render) and check only that the sound does not outlast the picture")
+                   help="the caption pass is already done (use it only then): skip the black-tail frame count, which only "
+                        "matters for a caption pass still to come, and check that the sound does not outlast the "
+                        "picture by more than one AAC frame")
     s.set_defaults(fn=cmd_av_span)
     s = sub.add_parser("first-frames"); s.add_argument("video"); s.add_argument("beats")
     s.add_argument("--offset", type=float, default=0.0, help="where beat 0 starts in VIDEO (0.4 after the cover)")

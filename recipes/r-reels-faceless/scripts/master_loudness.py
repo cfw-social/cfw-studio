@@ -5,7 +5,8 @@
 
 Pass 1 measures with ffmpeg's loudnorm (JSON). Pass 2 applies loudnorm with those measured values and
 linear=true; the picture is copied, the sound is AAC 192k, 48 kHz, stereo and is cut to the picture's length (the
-loudness filter and the AAC encoder both add a little tail, up to 100 ms and then one 21 ms AAC frame). A missing or non-finite
+loudness filter and the AAC encoder add 15 to 100 ms of tail). Sound more than 0.1 s longer than the picture is a
+failure (exit 1): real sound is never cut. A missing or non-finite
 measurement is a failure: there is no one-pass fallback. ffmpeg is run with an argument list and
 `-protocol_whitelist file`, so a path can only name a local file. Both paths must be inside the current
 folder; the output is written to a temporary name and renamed into place. Exit 0 done, 1 failed, 2 bad
@@ -47,14 +48,34 @@ def parse_stats(stderr):
     return out
 
 
-def picture_seconds(src):
-    """The video stream's own length, so the mastered sound can be cut to it."""
-    p = subprocess.run(["ffprobe", "-v", "error", "-protocol_whitelist", "file", "-select_streams", "v:0", "-show_entries",
+MAX_CUT = 0.1   # seconds of sound past the picture that may be cut: the loudness filter and the AAC encoder add 15 to 100 ms
+
+
+def stream_seconds(src, select, what):
+    """One stream's own length in seconds. Raises ValueError with a plain message when there is no such stream."""
+    p = subprocess.run(["ffprobe", "-v", "error", "-protocol_whitelist", "file", "-select_streams", select, "-show_entries",
                         "stream=duration", "-of", "csv=p=0", src], capture_output=True, text=True, timeout=120)
-    value = float(p.stdout.strip().splitlines()[0])
-    if p.returncode != 0 or not math.isfinite(value) or value <= 0:
-        raise ValueError("could not read the picture length")
+    lines = p.stdout.strip().splitlines()
+    if p.returncode != 0 or not lines:
+        raise ValueError("the file has no %s stream" % what)
+    try:
+        value = float(lines[0])
+    except ValueError:
+        raise ValueError("could not read the %s length" % what) from None
+    if not math.isfinite(value) or value <= 0:
+        raise ValueError("could not read the %s length" % what)
     return value
+
+
+def picture_seconds(src):
+    """The video stream's own length, so the mastered sound can be cut to it. Refuses sound that is really longer."""
+    picture = stream_seconds(src, "v:0", "video")
+    sound = stream_seconds(src, "a:0", "audio")
+    if sound - picture > MAX_CUT:
+        raise ValueError("the sound is %.3f s longer than the picture (%.3f s against %.3f s); only up to %.1f s is cut, "
+                         "so a real voice tail is never lost. Fix the picture or the sound first"
+                         % (sound - picture, sound, picture, MAX_CUT))
+    return picture
 
 
 def apply_filter(stats, target):
