@@ -21,6 +21,8 @@ The names "templates", "recipe library" and "built-in recipes" are proposed. The
 
 ## Start here
 
+Start with [docs/SETUP.md](docs/SETUP.md). It lists every tool the templates need and three test pieces to make.
+
 1. Read [docs/DESIGN.md](docs/DESIGN.md) for the model.
 2. Read [docs/DECISIONS.md](docs/DECISIONS.md) for why. The latest section overrides the earlier ones.
 3. Read [docs/MIGRATION.md](docs/MIGRATION.md) before touching today's Social publish path.

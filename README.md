@@ -62,6 +62,7 @@ A folder in this repo is a template. It is not, by itself, something that runs i
 
 ## Get started
 
+- Setting up a machine? Start with [docs/SETUP.md](docs/SETUP.md): every tool the templates need, and three test pieces to make.
 - Browse [`effects/`](effects/) for the checked-in looks (see the inventory in [`effects/README.md`](effects/README.md)), [`blocks/`](blocks/) for the building blocks, and [`recipes/`](recipes/) for the scaffold. Each area has a `_template/` to copy.
 - To contribute, read [CONTRIBUTING.md](CONTRIBUTING.md) and open a pull request with your piece, any new blocks or effects it needs, and a sample run.
 - If a template fails or is wrong, read [docs/REPORTING.md](docs/REPORTING.md) and file an issue.
