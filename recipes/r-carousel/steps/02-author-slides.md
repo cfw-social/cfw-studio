@@ -28,8 +28,8 @@ browser opens. So:
   HTML by hand. The check below finds each headline and body in the page in its
   escaped form, and fails if the raw form is there (so a raw `<h1>` or
   `<a href=...>` in the copy fails). One exception: the template marks an accent word as
-  `<span class="hl">word</span>` inside a headline. Write the copy in `slide_copy.json` as plain text
-  (without the span) and wrap the word in the HTML; the check ignores exactly that span and no other.
+  `<span class="hl">word</span>` inside a heading (a headline, never body copy). Write the copy in `slide_copy.json` as plain text
+  (without the span) and wrap the word in the HTML; the check ignores exactly that span, inside a heading, and requires every span to be closed.
 - The slide HTML has no `<script>`, no event-handler attributes (`onclick=`,
   `onerror=`, any `on...=`), and no `<iframe>`, `<object>`, `<embed>`, `<base>`
   or `<form>`. It has no `srcset`, `poster`, `action` or `ping` attribute.
@@ -99,9 +99,17 @@ ids = re.findall(r'<section[^>]*class="[^"]*\bslide\b[^"]*"[^>]*id="s(\d+)"', ht
 check(sorted(map(int, ids)) == list(range(1, n + 1)), 'slide sections differ from outline')
 check(len(copy['slides']) == n, 'copy count differs from outline')
 # Text is escaped: each headline and body is in the page escaped, and never raw when escaping changes it.
-# One accent span is allowed inside a headline or body, exactly as template.html shows it: <span class="hl">word</span>.
-# Only that exact span is ignored when looking for the escaped copy; any other tag still splits the text and fails.
-plain_html = re.sub(r'<span class="hl">|</span>', '', html)
+# One accent span is allowed, only inside a heading (h1 to h6), exactly as template.html shows it:
+# <span class="hl">word</span>. Spans must be balanced, a heading may hold no other span, and a span anywhere else
+# (a body paragraph, a card) is refused. Only that exact span, inside a heading, is ignored when looking for the
+# escaped copy; any other tag still splits the text and fails.
+HEAD = r'<h([1-6])\b[^>]*>(.*?)</h\1>'
+check(len(re.findall(r'<span\b', html, re.I)) == len(re.findall(r'</span\s*>', html, re.I)), 'slide HTML has an unclosed or stray span')
+check('<span class="hl">' not in re.sub(HEAD, '', html, flags=re.S), 'an accent span is outside a headline')
+for _, inner in re.findall(HEAD, html, flags=re.S):
+    check(len(re.findall(r'<span\b', inner, re.I)) == inner.count('<span class="hl">'), 'a heading holds a span that is not the accent span')
+    check(inner.count('<span class="hl">') == inner.count('</span>'), 'a heading has an unclosed or stray span')
+plain_html = re.sub(HEAD, lambda m: re.sub(r'<span class="hl">|</span>', '', m.group(0)), html, flags=re.S)
 for slide in copy['slides']:
     for field in ('headline', 'body'):
         text = slide.get(field) or ''

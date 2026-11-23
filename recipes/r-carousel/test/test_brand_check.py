@@ -149,6 +149,22 @@ class AuthoringCheckEscaping(CheckHarness):
             p, _ = self.run_check({"accent": "#E11D48"}, html, self.slides("The big promise headline"))
             self.assertNotEqual(p.returncode, 0, first)
 
+    def test_unclosed_stray_and_misplaced_spans_fail(self):
+        slides = self.slides("The big promise headline")
+        cases = {"unclosed span in the headline": '<h1>The big <span class="hl">promise headline</h1>',
+                 "stray closing span in the headline": '<h1>The big promise</span> headline</h1>',
+                 "two accent spans, one unclosed": '<h1>The <span class="hl">big</span> <span class="hl">promise headline</h1>',
+                 "other span in the headline": '<h1>The big <span class="hl">promise</span> <span class="x">headline</span></h1>'}
+        for label, first in cases.items():
+            p, _ = self.run_check({"accent": "#E11D48"}, self.page(first), slides)
+            self.assertNotEqual(p.returncode, 0, label)
+        body = carousel_html("#E11D48").replace("<p>B.</p>", '<p>B <span class="hl">hot</span>.</p>')
+        p, _ = self.run_check({"accent": "#E11D48"}, body, self.slides("H1", body="B hot."))
+        self.assertNotEqual(p.returncode, 0, "a span in a body paragraph")
+        stray = carousel_html("#E11D48").replace("<p>B.</p>", "<p>B.</span></p>", 1)
+        p, _ = self.run_check({"accent": "#E11D48"}, stray)
+        self.assertNotEqual(p.returncode, 0, "a stray closing span in a body paragraph")
+
     def test_a_span_written_in_the_copy_is_still_raw_markup(self):
         raw = 'The <span class="hl">big</span> one'
         html = self.page("<h1>%s</h1>" % raw)
