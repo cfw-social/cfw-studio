@@ -1,0 +1,143 @@
+{
+  "recipe": "r-reels-pip-heygen",
+  "spec_version": 1,
+  "_note": "Read by blocks/b-qa-gate/check.py. Kinds used: qa_gate, duration_window, dims, luma_floor, loudness, mean_volume and perceptual (a look for the bot). Step 6 runs the top-level checks on saves/final_video.mp4; steps 1 and 4 run the two interim lists with --step.",
+  "checks": [
+    {
+      "id": "qa_gate",
+      "kind": "mechanical",
+      "type": "qa_gate",
+      "format": "reel"
+    },
+    {
+      "id": "duration_window",
+      "kind": "mechanical",
+      "type": "duration_window",
+      "min_s": 20,
+      "max_s": 62
+    },
+    {
+      "id": "canvas_1080x1920",
+      "kind": "geometry",
+      "type": "dims",
+      "w": 1080,
+      "h": 1920
+    },
+    {
+      "id": "frame_not_black",
+      "kind": "geometry",
+      "type": "luma_floor",
+      "crop": "1080:1920:0:0",
+      "floor": 16,
+      "samples": [
+        0.05,
+        0.2,
+        0.4,
+        0.6,
+        0.8,
+        0.95
+      ]
+    },
+    {
+      "id": "bg_has_content",
+      "kind": "perceptual",
+      "type": "perceptual",
+      "desc": "(a) The background behind and around the speaker card is not black: real footage or a card is visible in every sample frame."
+    },
+    {
+      "id": "face_whole_in_pip",
+      "kind": "perceptual",
+      "type": "perceptual",
+      "desc": "(b) The complete face shows in the speaker card, forehead to chin, not cropped at the top or bottom and not stretched."
+    },
+    {
+      "id": "pip_on_screen_with_margin",
+      "kind": "perceptual",
+      "type": "perceptual",
+      "desc": "(c) The speaker card is fully on screen with a clear gap below it (a 110 px margin) and a ring in the brand colour."
+    },
+    {
+      "id": "content_above_pip_only",
+      "kind": "perceptual",
+      "type": "perceptual",
+      "desc": "(d) Cards and captions occupy the upper zone only; nothing invades the bottom band where the speaker card sits."
+    },
+    {
+      "id": "bg_fills_full_width",
+      "kind": "perceptual",
+      "type": "perceptual",
+      "desc": "(e) The background fills the full frame width: no side bars, no top or bottom bands, no distortion."
+    },
+    {
+      "id": "captions_legible_not_over_pip",
+      "kind": "perceptual",
+      "type": "perceptual",
+      "desc": "(f) Captions are legible, the emphasis words are in the brand accent, and no caption overlaps the speaker card."
+    },
+    {
+      "id": "latin_script_only",
+      "kind": "perceptual",
+      "type": "perceptual",
+      "desc": "(g) All captions and card text use Latin script only."
+    },
+    {
+      "id": "broll_beats_correct",
+      "kind": "perceptual",
+      "type": "perceptual",
+      "desc": "(h) Where the plan placed a b-roll clip, that clip is on screen; where it did not, a card is."
+    },
+    {
+      "id": "cover_is_moneyshot",
+      "kind": "perceptual",
+      "type": "perceptual",
+      "desc": "(i) Frame 0 shows the speaker card over a content beat (the planned money shot): not black, not a title card, not a fade."
+    }
+  ],
+  "steps": {
+    "voicebed": {
+      "artifact": "saves/voice_track.mp4",
+      "checks": [
+        {
+          "id": "bed_loudness",
+          "kind": "mechanical",
+          "type": "loudness",
+          "target": -14,
+          "tol": 1.5
+        },
+        {
+          "id": "bed_has_speech",
+          "kind": "mechanical",
+          "type": "mean_volume",
+          "min_db": -32,
+          "max_db": -8
+        }
+      ]
+    },
+    "background": {
+      "artifact": "saves/background.mp4",
+      "checks": [
+        {
+          "id": "bg_track_dims",
+          "kind": "geometry",
+          "type": "dims",
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "id": "bg_track_not_black",
+          "kind": "geometry",
+          "type": "luma_floor",
+          "crop": "1080:1920:0:0",
+          "floor": 16,
+          "samples": [
+            0.1,
+            0.3,
+            0.5,
+            0.7,
+            0.9
+          ]
+        }
+      ]
+    }
+  }
+}

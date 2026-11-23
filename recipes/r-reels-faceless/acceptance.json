@@ -1,0 +1,181 @@
+{
+  "recipe": "r-reels-faceless",
+  "spec_version": 1,
+  "_note": "Thresholds for this recipe. Run with b-qa-gate: check.py --kind reel --spec acceptance.json --input FILE --out SCORECARD. Mechanical kinds are measured by the block; kind perceptual becomes a LOOK row the bot answers with --finalize. A check kind the block does not know is a FAIL. A brand may tighten these checks, never weaken them.",
+  "checks": [
+    {
+      "id": "qa_gate",
+      "kind": "mechanical",
+      "type": "qa_gate",
+      "format": "reel",
+      "_note": "The mechanical reel floor owned by b-qa-gate: video stream, audio, 1080x1920, frame rate, length, loudness and the frame-0 cover rule, one row each. It is not an aggregate of the looks or of this recipe's own guards (frame_qa.py); those run separately."
+    },
+    {
+      "id": "duration_window",
+      "kind": "mechanical",
+      "type": "duration_window",
+      "min_s": 30,
+      "max_s": 90
+    },
+    {
+      "id": "canvas_1080x1920",
+      "kind": "geometry",
+      "type": "dims",
+      "w": 1080,
+      "h": 1920
+    },
+    {
+      "id": "frame_not_black",
+      "kind": "geometry",
+      "type": "luma_floor",
+      "crop": "1080:1920:0:0",
+      "floor": 16,
+      "samples": [
+        0.05,
+        0.2,
+        0.4,
+        0.6,
+        0.8,
+        0.95
+      ]
+    },
+    {
+      "id": "cover_has_contrast",
+      "kind": "geometry",
+      "type": "contrast_floor",
+      "crop": "1080:1920:0:0",
+      "samples": [
+        0.0
+      ],
+      "_note": "Cover rule: frame 0 is a bright frame OR a dark card with a bright headline; a flat dark/black frame fails."
+    },
+    {
+      "id": "no_overlapping_text",
+      "kind": "perceptual",
+      "type": "perceptual",
+      "desc": "(a) No overlapping or jumbled text — one beat's text visible at a time, beats are strictly sequential."
+    },
+    {
+      "id": "beat_content_correct",
+      "kind": "perceptual",
+      "type": "perceptual",
+      "desc": "(b) Graphics beats show a brand motion graphic (not a photo or blank rectangle); b-roll beats show real footage scaled-to-cover with no black bars."
+    },
+    {
+      "id": "text_legible_mobile",
+      "kind": "perceptual",
+      "type": "perceptual",
+      "desc": "(c) Text is legible at mobile size — 60px+ headlines, AA contrast, no tiny or illegible copy."
+    },
+    {
+      "id": "brand_colors_correct",
+      "kind": "perceptual",
+      "type": "perceptual",
+      "desc": "(d) Brand colors are correct per the brand's palette — not defaulted to white-on-black or any non-brand palette. If a brand font named in the brief was not installed and the generic family was used, say so in the note; that is not a failure by itself."
+    },
+    {
+      "id": "no_tofu_boxes",
+      "kind": "perceptual",
+      "type": "perceptual",
+      "desc": "(e) No □ tofu boxes anywhere — all icons are inline SVG or CSS, zero unicode glyphs that the headless renderer cannot resolve."
+    },
+    {
+      "id": "ghost_glyph_thematic",
+      "kind": "perceptual",
+      "type": "perceptual",
+      "desc": "(f) Every graphics beat made by card_fill.py (every type except hook and typing) has a ghost glyph that is a thematic number or single letter (beat index, listicle total, or deliberate initial), never a placeholder word like 'CTA', 'TITLE', or 'HEADER'. The hook and typing cards have no ghost glyph by design and are not judged here. If the reel has no card_fill beat, answer yes and say so in the note."
+    },
+    {
+      "id": "foreground_hero_present",
+      "kind": "perceptual",
+      "type": "perceptual",
+      "desc": "(g) A FOREGROUND HERO is present and dominant on every card_fill beat and every typing beat (the chat card is its hero): bright headline plus an animated diagram, chart, checklist or card, not a ghost-glyph-only frame. A hook card is judged by its big title lines (it has no hero by design). If the reel has only hook cards, answer yes and say so in the note."
+    },
+    {
+      "id": "brand_outro_at_end",
+      "kind": "perceptual",
+      "type": "perceptual",
+      "desc": "(h) Brand outro appears at approximately the final 3% of the reel (brand name + CTA, not a content beat)."
+    },
+    {
+      "id": "cover_is_moneyshot",
+      "kind": "perceptual",
+      "type": "perceptual",
+      "desc": "(i) Cover freeze at t≈0 shows the money-shot — not a black frame or hook-animation blank."
+    },
+    {
+      "id": "final_loudness",
+      "kind": "mechanical",
+      "type": "loudness",
+      "target": -14,
+      "tol": 1.5,
+      "_note": "One loudness target for reels: -14 LUFS integrated on the delivered file."
+    },
+    {
+      "id": "latin_script_only",
+      "kind": "perceptual",
+      "type": "perceptual",
+      "desc": "Cards and captions use Latin script with phonetic transliteration, preserving the original meaning."
+    },
+    {
+      "id": "broll_beats_correct",
+      "kind": "perceptual",
+      "type": "perceptual",
+      "desc": "Every b-roll window shows the exact staged clip/window planned by the bot; all-graphics orders have no b-roll windows."
+    }
+  ],
+  "steps": {
+    "voicebed": {
+      "artifact": "vo-normed.aac",
+      "checks": [
+        {
+          "id": "vo_duration_window",
+          "kind": "mechanical",
+          "type": "duration_window",
+          "min_s": 30,
+          "max_s": 87.1
+        },
+        {
+          "id": "vo_loudness",
+          "kind": "mechanical",
+          "type": "loudness",
+          "target": -14,
+          "tol": 1.5
+        },
+        {
+          "id": "vo_has_speech",
+          "kind": "mechanical",
+          "type": "mean_volume",
+          "min_db": -32,
+          "max_db": -8
+        }
+      ]
+    },
+    "assembled": {
+      "artifact": "body.mp4",
+      "checks": [
+        {
+          "id": "body_dims",
+          "kind": "geometry",
+          "type": "dims",
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "id": "body_not_black",
+          "kind": "geometry",
+          "type": "luma_floor",
+          "crop": "1080:1920:0:0",
+          "floor": 16,
+          "samples": [
+            0.1,
+            0.3,
+            0.5,
+            0.7,
+            0.9
+          ]
+        }
+      ]
+    }
+  }
+}

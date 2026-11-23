@@ -1,0 +1,53 @@
+{
+  "recipe": "r-gfx-image",
+  "spec_version": 1,
+  "_note": "b-qa-gate runs this per produced image (one file at a time, --kind image). The canvas checks are for the square post (1080x1080). For portrait (1080x1920) or banner (1920x1080), step 4 writes a copy of this file with that canvas and passes it with --spec. The perceptual lines are answered by the bot, then recorded with --finalize.",
+  "checks": [
+    {
+      "id": "canvas_1080x1080",
+      "type": "dims",
+      "w": 1080,
+      "h": 1080
+    },
+    {
+      "id": "frame_not_black",
+      "type": "luma_floor",
+      "crop": "1080:1080:0:0",
+      "floor": 16,
+      "samples": [
+        0.5
+      ]
+    },
+    {
+      "id": "not_a_flat_card",
+      "type": "not_flat",
+      "crop": "1080:1080:0:0",
+      "min_range": 32
+    },
+    {
+      "id": "no_text_clipping",
+      "type": "perceptual",
+      "desc": "(a) No text is clipped, cut at an edge, or overflowing its container — every headline, body line, eyebrow, and label is fully visible."
+    },
+    {
+      "id": "legible_contrast",
+      "type": "perceptual",
+      "desc": "(b) Text-to-background contrast is strong and legible at thumbnail size — no light-grey-on-dark, no same-hue collisions, no color-on-busy-image failures."
+    },
+    {
+      "id": "on_brand_palette",
+      "type": "perceptual",
+      "desc": "(c) Palette matches the brand's own palette (brief.json.brand.palette; with no brand palette, the dark studio navy/green default) — not generic stock-template colors (#333, plain white/grey); the stock template blue #3b82f6 is off-brand only when it is not in brief.json.brand.palette."
+    },
+    {
+      "id": "premium_hierarchy",
+      "type": "perceptual",
+      "desc": "(d) Clear premium visual hierarchy — one dominant focal element (headline, stat, or illustration), supporting copy clearly subordinate; depth present (shadows, elevation, rounded cards, deliberate spacing) — not a bare title on a plain background."
+    },
+    {
+      "id": "consistent_margins",
+      "type": "perceptual",
+      "desc": "(e) Consistent, generous margins and padding — content is not crammed to an edge and not floating in dead space; layout is intentionally aligned to a shared grid."
+    }
+  ]
+}

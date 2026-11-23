@@ -1,0 +1,114 @@
+{
+  "recipe": "r-ai-character",
+  "spec_version": 1,
+  "_note": "Read by b-qa-gate (check.py --kind image). Run it once per scene image. Scene 1 uses --step cover, which adds the cover question. Every perceptual item becomes a look the bot must answer yes or no, then record with --finalize.",
+  "checks": [
+    {
+      "id": "canvas_1080x1920",
+      "type": "dims",
+      "w": 1080,
+      "h": 1920,
+      "desc": "Exact 9:16 portrait canvas. Every scene is scaled and cropped to 1080x1920."
+    },
+    {
+      "id": "scenes_not_dark",
+      "type": "luma_floor",
+      "crop": "1080:960:0:480",
+      "floor": 16,
+      "samples": [
+        0
+      ],
+      "desc": "Centre zone (middle 960px of height) has mean luma of at least 16, so the scene has visible content."
+    },
+    {
+      "id": "scenes_not_flat",
+      "type": "not_flat",
+      "min_range": 32,
+      "desc": "The scene is not one flat colour."
+    },
+    {
+      "id": "character_consistency",
+      "type": "perceptual",
+      "desc": "Compare this scene with the character reference image. Is it the same character? Face or body, hair or head, eyes or ears, clothing, distinctive feature and colour palette must not drift."
+    },
+    {
+      "id": "no_diverged_frame",
+      "type": "perceptual",
+      "desc": "Does the character look identical to the reference? Answer no if the face, outfit or distinctive feature changed. A scene answered no is regenerated."
+    },
+    {
+      "id": "character_fills_frame",
+      "type": "perceptual",
+      "desc": "Does the character take up a substantial part of the frame, not a tiny figure lost in the setting?"
+    },
+    {
+      "id": "no_text_no_distortion",
+      "type": "perceptual",
+      "desc": "Is the frame free of text, captions, logos and watermarks, and free of distorted anatomy?"
+    },
+    {
+      "id": "scene_matches_arc",
+      "type": "perceptual",
+      "desc": "Does the scene show what its story-arc entry describes (place, action, emotion, camera framing)?"
+    }
+  ],
+  "steps": {
+    "cover": {
+      "checks": [
+        {
+          "id": "canvas_1080x1920",
+          "type": "dims",
+          "w": 1080,
+          "h": 1920,
+          "desc": "Exact 9:16 portrait canvas. Every scene is scaled and cropped to 1080x1920."
+        },
+        {
+          "id": "scenes_not_dark",
+          "type": "luma_floor",
+          "crop": "1080:960:0:480",
+          "floor": 16,
+          "samples": [
+            0
+          ],
+          "desc": "Centre zone (middle 960px of height) has mean luma of at least 16, so the scene has visible content."
+        },
+        {
+          "id": "scenes_not_flat",
+          "type": "not_flat",
+          "min_range": 32,
+          "desc": "The scene is not one flat colour."
+        },
+        {
+          "id": "character_consistency",
+          "type": "perceptual",
+          "desc": "Compare this scene with the character reference image. Is it the same character? Face or body, hair or head, eyes or ears, clothing, distinctive feature and colour palette must not drift."
+        },
+        {
+          "id": "no_diverged_frame",
+          "type": "perceptual",
+          "desc": "Does the character look identical to the reference? Answer no if the face, outfit or distinctive feature changed. A scene answered no is regenerated."
+        },
+        {
+          "id": "character_fills_frame",
+          "type": "perceptual",
+          "desc": "Does the character take up a substantial part of the frame, not a tiny figure lost in the setting?"
+        },
+        {
+          "id": "no_text_no_distortion",
+          "type": "perceptual",
+          "desc": "Is the frame free of text, captions, logos and watermarks, and free of distorted anatomy?"
+        },
+        {
+          "id": "scene_matches_arc",
+          "type": "perceptual",
+          "desc": "Does the scene show what its story-arc entry describes (place, action, emotion, camera framing)?"
+        },
+        {
+          "id": "cover_is_moneyshot",
+          "type": "perceptual",
+          "desc": "Scene 1 is the cover. Does it show the character clearly in a compelling, bright composition? Not black, not blurred."
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "recipe": "r-ai-image",
+  "spec_version": 1,
+  "_note": "Run once per image with b-qa-gate (--kind image). Canonical canvas is 1080x1080. Step 03 writes a copy of this file with the dims check and the crops set to the order's canvas and passes the copy as --spec, so 9:16 and 16:9 orders are checked against their own size. The perceptual items become look questions the bot answers with its own vision.",
+  "checks": [
+    {
+      "id": "canvas_1080x1080",
+      "type": "dims",
+      "w": 1080,
+      "h": 1080
+    },
+    {
+      "id": "frame_not_black",
+      "type": "luma_floor",
+      "crop": "1080:1080:0:0",
+      "floor": 16,
+      "samples": [
+        0.5
+      ]
+    },
+    {
+      "id": "frame_not_flat",
+      "type": "not_flat",
+      "min_range": 32
+    },
+    {
+      "id": "subject_rendered",
+      "type": "perceptual",
+      "desc": "(a) The subject described by the prompt is clearly present and correctly rendered \u2014 no missing elements, no generation failures (distorted limbs, incoherent content, broken anatomy)."
+    },
+    {
+      "id": "no_artifacts",
+      "type": "perceptual",
+      "desc": "(b) No visible AI artifacts \u2014 no blurry patches, visible watermarks, corrupted regions, or obvious seams."
+    },
+    {
+      "id": "legible_text",
+      "type": "perceptual",
+      "desc": "(c) Any text present in the image is legible and correctly spelled \u2014 no garbled characters, no Lorem ipsum, no unintended language."
+    },
+    {
+      "id": "palette_premium",
+      "type": "perceptual",
+      "desc": "(d) Color palette reads as premium and intentional \u2014 not washed-out, oversaturated, or off-brand."
+    },
+    {
+      "id": "composition_quality",
+      "type": "perceptual",
+      "desc": "(e) Composition is strong \u2014 clear focal point, well-framed subject with appropriate headroom, not cluttered or awkwardly cropped at edges."
+    }
+  ]
+}

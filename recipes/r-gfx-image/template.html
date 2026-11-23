@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src data:">
+<!-- Fonts: Inter (body) and Oswald (display), both SIL Open Font License, loaded from Google Fonts.
+     Replace the family names with the brand's own (letters, digits, spaces, hyphens only). -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@600;700&display=swap">
+<style>
+/* Step 2 sets W and H (px) and the colours from brief.json.brand.palette. These are the dark studio default. */
+:root { --bg:#0B1220; --card:#131C2E; --ink:#F4F6FA; --muted:#9AA6B8; --accent:#22C55E; --line:#22304A;
+        --display:'Oswald', 'Arial Narrow', sans-serif; --body:'Inter', Arial, sans-serif; }
+html, body { margin:0; background:var(--bg); }
+.card { width:1080px; height:1080px; overflow:hidden; position:relative; box-sizing:border-box;
+        padding:96px 80px; background:var(--bg); color:var(--ink); font-family:var(--body);
+        display:flex; flex-direction:column; gap:28px; }
+.eyebrow { font-size:26px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:600; }
+h1 { margin:0; font-family:var(--display); font-weight:700; font-size:76px; line-height:1.08; }
+.footer { margin-top:auto; font-size:30px; color:var(--muted); }
+.logo { position:absolute; right:72px; bottom:72px; width:100px; }
+.surface { background:var(--card); border:2px solid var(--line); border-radius:28px; box-shadow:0 18px 40px rgba(0,0,0,.28); }
+/* steps */
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; flex:1; align-content:center; }
+.step { padding:36px 32px; display:flex; gap:20px; align-items:flex-start; font-size:32px; line-height:1.3; }
+.num { font-family:var(--display); font-size:56px; line-height:1; color:var(--accent); }
+/* stat */
+.stat { font-family:var(--display); font-weight:700; font-size:260px; line-height:1; color:var(--accent); }
+.context { font-size:40px; line-height:1.3; color:var(--ink); }
+/* quote */
+.quote { font-family:var(--display); font-size:68px; line-height:1.2; }
+.by { font-size:30px; color:var(--muted); }
+/* before / after */
+.cols { display:grid; grid-template-columns:1fr 90px 1fr; gap:16px; align-items:center; flex:1; }
+.col { padding:44px 36px; font-size:36px; line-height:1.3; }
+.arrow { display:flex; align-items:center; justify-content:center; font-size:64px; color:var(--accent); }
+/* diagram */
+.nodes { display:flex; flex-direction:column; gap:18px; align-items:center; justify-content:center; flex:1; }
+.node { padding:22px 40px; font-size:34px; min-width:520px; text-align:center; }
+.link { width:4px; height:28px; background:var(--accent); }
+/* banner (1920x1080): set .card width to 1920px and padding to 96px */
+.banner-row { display:flex; justify-content:space-between; align-items:center; gap:80px; flex:1; }
+.tagline { font-size:44px; line-height:1.3; color:var(--muted); max-width:560px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <!-- The bot fills this from one plan entry. Every piece of text is HTML-escaped first. -->
+  <div class="eyebrow">EYEBROW</div>
+  <h1>HEADLINE</h1>
+  <div class="grid">
+    <div class="surface step"><span class="num">1</span><span>ITEM ONE</span></div>
+    <div class="surface step"><span class="num">2</span><span>ITEM TWO</span></div>
+  </div>
+  <div class="footer">FOOTER</div>
+</div>
+</body>
+</html>

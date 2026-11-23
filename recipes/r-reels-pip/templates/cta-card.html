@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>end card</title>
+<!--
+  Picture-in-picture reel end card: a translucent scrim with one call to action, laid over the last seconds
+  of the reel. Render it as a .mov with alpha (b-hyperframes, --format mov). The scrim and the
+  copy sit on inner layers; the page itself is transparent. Fill it with scripts/fill_page.py
+  --card cta; never by hand. Placeholders: DURATION, ACCENT, FG, CTA_TEXT, HANDLE_BLOCK.
+  Fonts Oswald and Inter (SIL Open Font Licence) must be installed on the machine that renders.
+-->
+<style>
+  @font-face { font-family: "Oswald"; src: local("Oswald"); }
+  @font-face { font-family: "Inter"; src: local("Inter"); }
+  html, body { margin: 0; padding: 0; width: 1080px; height: 1920px; overflow: hidden; background: transparent; }
+  .scrim { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; background: rgba(15, 23, 42, 0.85); }
+  .cta {
+    position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; box-sizing: border-box;
+    padding: 0 80px 288px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  h1 { color: #{{FG}}; font-family: "Oswald", sans-serif; font-size: 120px; font-weight: 900; text-align: center; margin: 0; }
+  p { color: #{{ACCENT}}; font-family: "Inter", sans-serif; font-size: 56px; opacity: 0.9; margin: 40px 0 0; text-align: center; }
+</style>
+</head>
+<body>
+<div data-composition-id="root" data-start="0" data-duration="{{DURATION}}" data-width="1080" data-height="1920">
+  <div class="scrim"></div>
+  <div class="cta"><h1 id="cta-text">{{CTA_TEXT}}</h1>{{HANDLE_BLOCK}}</div>
+</div>
+<script src="gsap.min.js"></script>
+<script>
+(function () {
+  var g = window.__gsap || window.gsap;
+  if (!g) { return; }
+  var tl = g.timeline({ paused: true });
+  tl.from("#cta-text", { opacity: 0, y: 40, duration: 0.4, ease: "power2.out" }, 0.1);
+  if (document.getElementById("cta-handle")) {
+    tl.from("#cta-handle", { opacity: 0, y: 20, duration: 0.35, ease: "power2.out" }, 0.3);
+  }
+  if (!window.__timelines) { window.__timelines = {}; }
+  window.__timelines["root"] = tl;
+})();
+</script>
+</body>
+</html>

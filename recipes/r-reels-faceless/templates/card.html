@@ -1,0 +1,128 @@
+<!doctype html>
+<!--
+  r-reels-faceless: one motion-graphics card (1080 x 1920). Filled by scripts/card_fill.py only.
+  Do not edit placeholders by hand: the filler escapes every piece of text.
+  Needs gsap.min.js beside the filled page (fetched by the b-hyperframes block).
+  Fonts Oswald, Inter and JetBrains Mono (SIL Open Font Licence) must be installed; each is
+  declared with a local @font-face so the renderer asks no font service. Nothing loads from the network.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  {{FONT_FACES}}
+  html, body { margin: 0; padding: 0; width: 1080px; height: 1920px; overflow: hidden; background: #{{BG}}; }
+  #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #{{BG}};
+          color: #{{FG}}; font-family: {{BODY}}; --accent: #{{ACCENT}}; --fg: #{{FG}}; }
+  .grid { position: absolute; left: 0; top: 0; width: 1080px; height: 1392px;
+          background-image: linear-gradient(rgba(128,128,128,0.10) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(128,128,128,0.10) 1px, transparent 1px);
+          background-size: 120px 120px; }
+  .glow { position: absolute; left: 40px; top: 300px; width: 1000px; height: 1000px; border-radius: 500px;
+          background: radial-gradient(circle, color-mix(in srgb, var(--accent) 48%, transparent) 0%, transparent 68%); }
+  .vignette { position: absolute; left: 0; top: 0; width: 1080px; height: 1392px;
+              background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.15) 100%); }
+  .ghost { position: absolute; left: 0; top: 520px; width: 1080px; text-align: center; line-height: 1;
+           font-family: {{DISPLAY}}; font-weight: 700; font-size: 760px;
+           color: color-mix(in srgb, var(--accent) 14%, transparent); }
+  .band { position: absolute; left: 0; top: 1392px; width: 1080px; height: 528px; background: #{{BAND}}; }
+  .rule { position: absolute; left: 0; top: 1392px; width: 1080px; height: 6px; background: var(--accent); }
+  .content { position: absolute; left: 70px; top: 150px; width: 940px; height: 1180px;
+             display: flex; flex-direction: column; }
+  .eyebrow { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 32px; letter-spacing: 0.2em;
+             text-transform: uppercase; color: var(--accent); margin-bottom: 28px; }
+  .headline { font-family: {{DISPLAY}}; font-weight: 700; font-size: {{HEAD_SIZE}}px; line-height: 1.0;
+              letter-spacing: -0.01em; text-transform: uppercase; color: var(--fg); }
+  .headline .accent { color: var(--accent); }
+  .sub { font-family: {{BODY}}; font-weight: 600; font-size: 44px; line-height: 1.2; margin-top: 28px;
+         color: var(--fg); opacity: 0.85; }
+  .hero { flex: 1; min-height: 0; margin-top: 36px; display: flex; align-items: center; justify-content: center; }
+  .float { width: 940px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .chips { display: flex; flex-wrap: wrap; gap: 22px; justify-content: center; }
+  .chip { font-family: {{BODY}}; font-weight: 800; font-size: 48px; padding: 18px 38px; border-radius: 60px;
+          border: 4px solid var(--accent); color: var(--fg);
+          background: color-mix(in srgb, var(--accent) 16%, transparent); }
+  .list { display: flex; flex-direction: column; gap: 26px; width: 900px; }
+  .row { display: flex; align-items: center; gap: 28px; font-family: {{BODY}}; font-weight: 700; font-size: 48px;
+         line-height: 1.15; }
+  .tick { flex: none; width: 72px; height: 72px; border-radius: 36px; background: var(--accent);
+          display: flex; align-items: center; justify-content: center; }
+  .flow { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 860px; }
+  .step { width: 100%; box-sizing: border-box; text-align: center; font-family: {{BODY}}; font-weight: 800;
+          font-size: 46px; padding: 22px 30px; border-radius: 24px; border: 4px solid var(--accent);
+          background: color-mix(in srgb, var(--accent) 14%, transparent); }
+  .arrow { height: 56px; display: flex; align-items: center; justify-content: center; }
+  .term { width: 900px; box-sizing: border-box; border-radius: 28px; background: #0B1220; color: #E2E8F0;
+          border: 3px solid color-mix(in srgb, var(--accent) 60%, transparent); padding: 26px 34px 34px; }
+  .dots { display: flex; gap: 14px; margin-bottom: 22px; }
+  .dot { width: 22px; height: 22px; border-radius: 11px; background: #475569; }
+  .tline { font-family: "JetBrains Mono", monospace; font-size: 36px; line-height: 1.5; font-weight: 700;
+           white-space: pre-wrap; overflow-wrap: anywhere; }
+  .tline .p { color: var(--accent); }
+  .cursor { display: inline-block; width: 20px; height: 38px; background: #E2E8F0; vertical-align: text-bottom; }
+  .statwrap { position: relative; width: 640px; height: 640px; display: flex; align-items: center;
+              justify-content: center; }
+  .statwrap svg { position: absolute; left: 0; top: 0; width: 640px; height: 640px; }
+  .stat { position: relative; text-align: center; font-family: {{DISPLAY}}; font-weight: 700; font-size: 190px;
+          line-height: 1; color: var(--fg); }
+  .unit { font-family: {{BODY}}; font-weight: 800; font-size: 52px; color: var(--accent); margin-top: 6px; }
+  .orbit { width: 620px; height: 620px; }
+  .btn { margin-top: 36px; font-family: {{BODY}}; font-weight: 800; font-size: 54px; padding: 26px 54px;
+         border-radius: 70px; background: var(--accent); color: #0B0B0B; }
+  .ctaicon { width: 260px; height: 260px; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="{{DURATION}}" data-width="1080"
+     data-height="1920" data-card-type="{{TYPE}}">
+  <div class="grid"></div>
+  <div class="glow" id="glow"></div>
+  <div class="ghost" id="ghost">{{GHOST}}</div>
+  <div class="vignette"></div>
+  <div class="band"></div>
+  <div class="rule"></div>
+  <div class="content">
+    {{EYEBROW_BLOCK}}
+    <div class="headline" id="headline">{{HEADLINE}}</div>
+    {{SUB_BLOCK}}
+    <div class="hero"><div class="float" id="float">{{HERO}}</div></div>
+  </div>
+  <script src="gsap.min.js"></script>
+  <script>
+  (function () {
+    window.__timelines = window.__timelines || {};
+    var D = parseFloat("{{DURATION}}");
+    var type = document.getElementById("root").getAttribute("data-card-type");
+    var tl = gsap.timeline({ paused: true });
+
+    /* Ambient motion for the whole span. All repeats are finite. */
+    tl.fromTo("#glow", { scale: 0.9, opacity: 0.6 }, { scale: 1.12, opacity: 1, duration: D, ease: "sine.inOut" }, 0);
+    tl.fromTo("#ghost", { x: -30, rotation: -2 }, { x: 30, rotation: 2, duration: D, ease: "sine.inOut" }, 0);
+    var cycles = Math.max(1, Math.ceil(D / 2));
+    tl.fromTo("#float", { y: 7 }, { y: -7, duration: D / cycles, ease: "sine.inOut", repeat: cycles - 1, yoyo: true }, 0);
+
+    /* Entrance: the headline and the hero are on screen from frame 1 and only move into place. */
+    tl.from("#headline", { y: 48, duration: 0.5, ease: "power4.out" }, 0);
+    if (document.getElementById("eyebrow")) tl.from("#eyebrow", { y: 24, opacity: 0, duration: 0.4, ease: "power3.out" }, 0.05);
+    if (document.getElementById("sub")) tl.from("#sub", { y: 20, opacity: 0, duration: 0.45, ease: "power3.out" }, 0.15);
+    tl.from(".item", { y: 60, scale: 0.92, duration: 0.55, stagger: 0.12, ease: "power3.out" }, 0);
+
+    if (type === "stat") {
+      tl.from("#ring", { strokeDashoffset: 1700, duration: 1.4, ease: "power2.out" }, 0);
+    }
+    if (type === "standard" || type === "hook") {
+      tl.to("#orbit", { rotation: 360, svgOrigin: "310 310", duration: D, ease: "none" }, 0);
+    }
+    if (type === "terminal") {
+      var blinks = Math.max(1, Math.floor(D / 0.5));
+      tl.to("#cursor", { opacity: 0, duration: 0.5, repeat: blinks, yoyo: true, ease: "steps(1)" }, 0);
+    }
+    if (type === "cta") {
+      tl.fromTo("#pulse", { scale: 0.94 }, { scale: 1.06, duration: 0.8, repeat: Math.max(1, Math.floor(D / 0.8)), yoyo: true, ease: "sine.inOut" }, 0);
+    }
+    window.__timelines["main"] = tl;
+  })();
+  </script>
+</div>
+</body>
+</html>
